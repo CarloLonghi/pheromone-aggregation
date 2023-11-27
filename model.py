@@ -1,11 +1,12 @@
 import mesa
 from player import SolitaryWorm, SocialWorm, Food
+from environment import WormEnvironment
 
 class WormSimulator(mesa.Model):
-    def __init__(self, n_agents, n_food, dim_grid, social):
+    def __init__(self, n_agents: int, n_food: int, dim_grid: int, social: bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
-        self.grid = mesa.space.MultiGrid(dim_grid, dim_grid, torus=True)
+        self.grid = WormEnvironment(dim_grid, dim_grid, torus=True)
 
         for i in range(n_agents):
             coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
@@ -21,7 +22,7 @@ class WormSimulator(mesa.Model):
         for i in range(n_food):
             coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
             f = Food(f'food_{i}', self, coords)
-            self.grid.place_agent(f, coords)
+            self.grid.place_food(coords, f)
 
-    def step(self):
+    def step(self) -> None:
         self.schedule.step()

@@ -1,12 +1,13 @@
 from model import WormSimulator, SolitaryWorm, SocialWorm, Food
 import mesa
+from typing import Dict
 
 WORM_COLOR = "#00CC00"
-FOOD_COLOR = "#FFFF00"
+FOOD_COLOR = ["#b3cde0", "#6497b1", "#005b96", "#03396c", "#011f4b"]
 
 GRID_SIZE = 50
 
-def agent_portrayal(agent):
+def agent_portrayal(agent: mesa.Agent) -> Dict:
 
     portrayal = {
         "x": agent.pos[0],
@@ -28,12 +29,24 @@ def agent_portrayal(agent):
 
     elif type(agent) is Food:
         portrayal["Shape"] = "rect"
-        portrayal["Color"] = FOOD_COLOR
+        portrayal["Color"] = FOOD_COLOR[food_level(agent.quantity)]
         portrayal["w"] = 0.9
         portrayal["h"] = 0.9
         portrayal["Layer"] = 0
 
     return portrayal
+
+def food_level(qty: int) -> int:
+    if qty < 2:
+        return 0
+    elif qty < 3:
+        return 1
+    elif qty < 5:
+        return 2
+    elif qty < 7:
+        return 3
+    else:
+        return 4
 
 model_params = {
     "n_agents": mesa.visualization.Slider(
