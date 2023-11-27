@@ -38,3 +38,10 @@ class WormEnvironment(mesa.space.MultiGrid):
         food = [agent for agent in self._grid[x][y] if type(agent) == Food]
         if len(food) > 0:
             food[0].consume()
+
+    def food_quantity(self, pos: Coordinate) -> int:
+        x, y = pos
+        return sum([agent.quantity for agent in self._grid[x][y] if type(agent) == Food])
+
+    def get_total_food(self) -> int:
+        return sum([self.food_quantity(pos) for _, pos in self.coord_iter()])

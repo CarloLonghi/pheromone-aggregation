@@ -24,5 +24,9 @@ class WormSimulator(mesa.Model):
             f = Food(f'food_{i}', self, coords)
             self.grid.place_food(coords, f)
 
+        self.datacollector = mesa.DataCollector(model_reporters={"Food": self.grid.get_total_food}, agent_reporters={})
+        self.datacollector.collect(self)
+
     def step(self) -> None:
         self.schedule.step()
+        self.datacollector.collect(self)

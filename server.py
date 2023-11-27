@@ -68,12 +68,19 @@ model_params = {
     )
 }
 
-canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, GRID_SIZE, GRID_SIZE, 700, 700)
+canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, GRID_SIZE, GRID_SIZE, 600, 600)
+
+chart = mesa.visualization.ChartModule(
+    [
+        {"Label": "Food", "Color": "#648FFF"},
+    ],
+    data_collector_name="datacollector"
+)
 
 # create instance of Mesa ModularServer
 server = mesa.visualization.ModularServer(
     WormSimulator,
-    [canvas_element],
+    [canvas_element, chart],
     "Worm Model",
     model_params=model_params,
 )
