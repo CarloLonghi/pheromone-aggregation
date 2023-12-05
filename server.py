@@ -5,7 +5,7 @@ from typing import Dict
 WORM_COLOR = "#00CC00"
 FOOD_COLOR = ["#b3cde0", "#6497b1", "#005b96", "#03396c", "#011f4b"]
 
-GRID_SIZE = 100
+GRID_SIZE = 50
 
 
 def agent_portrayal(agent: mesa.Agent) -> Dict:
@@ -56,28 +56,22 @@ model_params = {
         100,
         500,
     ),
-    "n_food": mesa.visualization.Slider(
-        "Number of food",
-        50000,
-        1000,
-        100000,
+    "dim_grid": GRID_SIZE,
+    "social": mesa.visualization.Checkbox(
+        "Social Agents",
+        False,
     ),
     "clustering": mesa.visualization.Slider(
         "Food degree of clustering",
-        100,
+        200,
         0,
-        100,
+        1000,
     ),
     "n_spot": mesa.visualization.Slider(
         "Number of food spot",
         1,
         1,
         4,
-    ),
-    "dim_grid": GRID_SIZE,
-    "social": mesa.visualization.Checkbox(
-        "Social Agents",
-        False,
     ),
     "multispot_food": mesa.visualization.Checkbox(
         "Multispot",
