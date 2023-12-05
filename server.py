@@ -7,6 +7,7 @@ WORM_COLOR = "#FF0000"
 FOOD_PALETTE = list(Color('blue').range_to(Color('yellow'), 50))
 
 GRID_SIZE = 35
+N_FOOD = GRID_SIZE**2 * 10
 
 def agent_portrayal(agent: mesa.Agent) -> Dict:
 
@@ -51,9 +52,13 @@ model_params = {
         10,
         100,
     ),
+    "social": mesa.visualization.Checkbox(
+        "Social Agents",
+        False,
+    ),
     "n_food": mesa.visualization.Slider(
-        "Number of food",
-        50000,
+        "Food Quantity",
+        N_FOOD,
         1000,
         100000,
     ),
@@ -63,17 +68,7 @@ model_params = {
         0,
         3,
     ),
-    "n_spot": mesa.visualization.Slider(
-        "Number of food spot",
-        1,
-        1,
-        4,
-    ),
     "dim_grid": GRID_SIZE,
-    "social": mesa.visualization.Checkbox(
-        "Social Agents",
-        False,
-    ),
     "multispot": mesa.visualization.Checkbox(
         "Multispot Food Distribution",
         False,

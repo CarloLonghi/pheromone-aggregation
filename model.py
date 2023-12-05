@@ -5,7 +5,7 @@ import math
 import random
 
 class WormSimulator(mesa.Model):
-    def __init__(self, n_agents: int, n_food: int, dim_grid: int, social: bool, multispot: bool, num_spots: int):
+    def __init__(self, n_agents: int, n_food: int, clustering: int, dim_grid: int, social: bool, multispot: bool, num_spots: int):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = WormEnvironment(dim_grid, torus=True)
@@ -21,11 +21,11 @@ class WormSimulator(mesa.Model):
             self.schedule.add(a)
             self.grid.place_agent(a, coords)
 
-        total_food = dim_grid ** 2 * 10
+        total_food = n_food
         if multispot:
             self.multispot_food(total_food, num_spots)
         else:
-            gamma = n_food
+            gamma = clustering
             self.smoothly_varying_food(total_food, gamma)
 
         self.datacollector = mesa.DataCollector(model_reporters={"Food": self.grid.get_total_food}, agent_reporters={})
@@ -54,7 +54,7 @@ class WormSimulator(mesa.Model):
                 foods.append(f)
         elif gamma == 0:
             for i in range(total_food):
-                coords = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.dim_grid))
+                coords = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.grid.dim_grid))
                 f = Food(f'food_{i}', self, coords)
                 self.grid.place_food(coords, f)
 
