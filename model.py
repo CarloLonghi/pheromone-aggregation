@@ -5,7 +5,7 @@ import math
 import random
 
 class WormSimulator(mesa.Model):
-    def __init__(self, n_agents: int, n_food: int, dim_grid: int, social: bool):
+    def __init__(self, n_agents: int, n_food: int,clustering:int, n_spot:int, dim_grid: int, social: bool,multispot_food:bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = WormEnvironment(dim_grid, dim_grid, torus=True)
@@ -21,25 +21,52 @@ class WormSimulator(mesa.Model):
             self.schedule.add(a)
             self.grid.place_agent(a, coords)
 
-        total_food = dim_grid ** 2
-        gamma = n_food/100
-        food_init = [random.randint(0, dim_grid-1), random.randint(0, dim_grid-1)]
-        coords = (food_init[0], food_init[1])
-        f = Food(f'food_{0}', self, coords)
+        total_food = n_food
+        gamma = clustering/100
+        if multispot_food:
+            if n_spot == 1:
+                food_init = [[dim_grid//2, dim_grid//2]]
+                coords = (food_init[0][0], food_init[0][1])
+                f = Food(f'food_{0}', self, coords)
+            else:
+                if n_spot == 2:
+                    food_init = [[dim_grid // 4, (dim_grid // 4) + (dim_grid // 2)],[(dim_grid // 4) + (dim_grid // 2), dim_grid // 4]]
+                elif n_spot == 3:
+                    food_init = [[dim_grid // 2,  (dim_grid // 4) + dim_grid //2],
+                                 [(dim_grid // 4) + (dim_grid // 2) , dim_grid // 4],
+                                 [(dim_grid // 4) , dim_grid // 4]
+                                 ]
+                elif n_spot ==4:
+                    food_init = [[dim_grid // 4, (dim_grid // 4) + dim_grid // 2],
+                                 [(dim_grid // 4) + (dim_grid // 2), dim_grid // 4],
+                                 [(dim_grid // 4), dim_grid // 4],
+                                 [dim_grid // 4 + dim_grid//2, (dim_grid // 4) + dim_grid // 2]
+                                 ]
+                for i in range(len(food_init)):
+                    coords = (food_init[i][0], food_init[i][1])
+                    f = Food(f'food_{i}', self, coords)
+        else:
+            food_init = [[random.randint(0, dim_grid-1), random.randint(0, dim_grid-1)]]
+            coords = (food_init[0][0], food_init[0][1])
+            f = Food(f'food_{0}', self, coords)
         self.grid.place_food(coords, f)
         for i in range(total_food):
-            d = random.uniform(1, dim_grid / math.sqrt(2))
             if gamma > 0:
                 d = random.uniform(0,1) ** (-1 / gamma)
                 if d > dim_grid / math.sqrt(2):
                     d = random.uniform(1, dim_grid / math.sqrt(2))
-            angle = random.uniform(0, 2 * math.pi)
-            x = food_init[0] + int(d * math.cos(angle))
-            y = food_init[1] + int(d * math.sin(angle))
+                angle = random.uniform(0, 2 * math.pi)
+                selected_food = random.randint(0,len(food_init)-1)
+                x = food_init[selected_food][0] + int(d * math.cos(angle))
+                y = food_init[selected_food][1] + int(d * math.sin(angle))
 
-            if not(x < 0 or x >= dim_grid or y < 0 or y >= dim_grid):
-                coords = (x,y)
-                f = Food(f'food_{i+1}', self, coords)
+                if not(x < 0 or x >= dim_grid or y < 0 or y >= dim_grid):
+                    coords = (x,y)
+                    f = Food(f'food_{i+1}', self, coords)
+                    self.grid.place_food(coords, f)
+            else:
+                coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
+                f = Food(f'food_{i + 1}', self, coords)
                 self.grid.place_food(coords, f)
 
         self.datacollector = mesa.DataCollector(model_reporters={"Food": self.grid.get_total_food}, agent_reporters={})
