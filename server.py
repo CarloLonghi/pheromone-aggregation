@@ -1,12 +1,12 @@
 from model import WormSimulator, SolitaryWorm, SocialWorm, Food
 import mesa
 from typing import Dict
+from colour import Color
 
-WORM_COLOR = "#00CC00"
-FOOD_COLOR = ["#b3cde0", "#6497b1", "#005b96", "#03396c", "#011f4b"]
+WORM_COLOR = "#FF0000"
+FOOD_PALETTE = list(Color('blue').range_to(Color('yellow'), 50))
 
-GRID_SIZE = 100
-
+GRID_SIZE = 35
 
 def agent_portrayal(agent: mesa.Agent) -> Dict:
 
@@ -30,31 +30,26 @@ def agent_portrayal(agent: mesa.Agent) -> Dict:
 
     elif type(agent) is Food:
         portrayal["Shape"] = "rect"
-        portrayal["Color"] = FOOD_COLOR[food_level(agent.quantity)]
+        portrayal["Color"] = food_color(agent.quantity)
         portrayal["w"] = 0.9
         portrayal["h"] = 0.9
         portrayal["Layer"] = 0
 
     return portrayal
 
-def food_level(qty: int) -> int:
-    if qty < 2:
-        return 0
-    elif qty < 3:
-        return 1
-    elif qty < 5:
-        return 2
-    elif qty < 7:
-        return 3
+def food_color(qty: int) -> int:
+    if qty >= len(FOOD_PALETTE):
+        return FOOD_PALETTE[-1].hex
     else:
-        return 4
+        return FOOD_PALETTE[qty].hex
+        
 
 model_params = {
     "n_agents": mesa.visualization.Slider(
         "Number of agents",
-        200,
+        40,
+        10,
         100,
-        500,
     ),
     "n_food": mesa.visualization.Slider(
         "Number of food",
@@ -64,9 +59,9 @@ model_params = {
     ),
     "clustering": mesa.visualization.Slider(
         "Food degree of clustering",
-        100,
+        1,
         0,
-        100,
+        3,
     ),
     "n_spot": mesa.visualization.Slider(
         "Number of food spot",
@@ -79,11 +74,15 @@ model_params = {
         "Social Agents",
         False,
     ),
-    "multispot_food": mesa.visualization.Checkbox(
-        "Multispot",
+    "multispot": mesa.visualization.Checkbox(
+        "Multispot Food Distribution",
         False,
     ),
-
+    "num_spots": mesa.visualization.Choice(
+        "Number of food spots",
+        1,
+        [1, 2, 4],
+    ),
 }
 
 canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, GRID_SIZE, GRID_SIZE, 600, 600)
