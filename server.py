@@ -7,6 +7,7 @@ FOOD_COLOR = ["#b3cde0", "#6497b1", "#005b96", "#03396c", "#011f4b"]
 
 GRID_SIZE = 50
 
+
 def agent_portrayal(agent: mesa.Agent) -> Dict:
 
     portrayal = {
@@ -56,16 +57,17 @@ model_params = {
         500,
     ),
     "n_food": mesa.visualization.Slider(
-        "Number of food spots",
-        1000,
-        500,
-        10000,
+        "Food degree of clustering",
+        0,
+        0,
+        100,
     ),
     "dim_grid": GRID_SIZE,
     "social": mesa.visualization.Checkbox(
         "Social Agents",
         False,
-    )
+    ),
+
 }
 
 canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, GRID_SIZE, GRID_SIZE, 600, 600)
