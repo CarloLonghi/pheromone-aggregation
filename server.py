@@ -56,6 +56,10 @@ model_params = {
         "Social Agents",
         False,
     ),
+    "clustered": mesa.visualization.Checkbox(
+        "Clustered Agents",
+        False,
+    ),
     "n_food": mesa.visualization.Slider(
         "Food Quantity",
         N_FOOD,

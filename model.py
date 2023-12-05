@@ -5,21 +5,25 @@ import math
 import random
 
 class WormSimulator(mesa.Model):
-    def __init__(self, n_agents: int, n_food: int, clustering: int, dim_grid: int, social: bool, multispot: bool, num_spots: int):
+    def __init__(self, n_agents: int, n_food: int, clustering: int, dim_grid: int, social: bool,
+                  multispot: bool, num_spots: int, clustered: bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = WormEnvironment(dim_grid, torus=True)
 
-        for i in range(n_agents):
-            coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
-            while not self.grid.is_cell_empty(coords):
+        if clustered:
+            self.clustered_agents(n_agents, social)
+        else:
+            for i in range(n_agents):
                 coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
-            if social:
-                a = SocialWorm(i, self, coords)
-            else:
-                a = SolitaryWorm(i, self, coords)
-            self.schedule.add(a)
-            self.grid.place_agent(a, coords)
+                while not self.grid.is_cell_empty(coords):
+                    coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
+                if social:
+                    a = SocialWorm(i, self, coords)
+                else:
+                    a = SolitaryWorm(i, self, coords)
+                self.schedule.add(a)
+                self.grid.place_agent(a, coords)
 
         total_food = n_food
         if multispot:
@@ -35,7 +39,8 @@ class WormSimulator(mesa.Model):
         self.schedule.step()
         self.datacollector.collect(self)
 
-    def smoothly_varying_food(self, total_food: int, gamma: int = 0):
+    def smoothly_varying_food(self, total_food: int, gamma: int = 0) -> None:
+        """Implements the smoothly varying inhomogeneous food distribution from the paper"""
         if gamma > 0:
             foods = []
             coords = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.grid.dim_grid))
@@ -58,7 +63,8 @@ class WormSimulator(mesa.Model):
                 f = Food(f'food_{i}', self, coords)
                 self.grid.place_food(coords, f)
 
-    def multispot_food(self, total_food: int, num_spots: int):
+    def multispot_food(self, total_food: int, num_spots: int) -> None:
+        """Implements the multispot food distribution from the paper"""
         if num_spots == 1:
             dx = self.grid.dim_grid / 2
             dy = self.grid.dim_grid / 2
@@ -81,3 +87,17 @@ class WormSimulator(mesa.Model):
             for cell in neighborhood:
                 f = Food(f'food_{i}', self, cell, quantity=food_per_cell)
                 self.grid.place_food(cell, f)
+
+    def clustered_agents(self, num_agents: int, social: bool) -> None:
+        """Implements the clustered initial positions for the worms"""
+        cluster_position = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.grid.dim_grid))
+        radius = math.ceil(math.sqrt(num_agents)) // 2
+        neighborhood = self.grid.get_neighborhood(cluster_position, True, True, radius)
+        positions = random.sample(neighborhood, num_agents)
+        for i in range(num_agents):
+            if social:
+                a = SocialWorm(i, self, positions[i])
+            else:
+                a = SolitaryWorm(i, self, positions[i])
+            self.schedule.add(a)
+            self.grid.place_agent(a, positions[i])
