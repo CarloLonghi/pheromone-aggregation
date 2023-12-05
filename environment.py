@@ -81,26 +81,3 @@ class WormEnvironment(mesa.space.MultiGrid):
                 if dx + dy == radius:
                     cells.append(cell)
         return cells
-
-    def smoothly_varying_food(self, total_food: int, random: Random, gamma: int = 0):
-        if gamma > 0:
-            foods = []
-            coords = (random.randrange(0, self.dim_grid), random.randrange(0, self.dim_grid))
-            f = Food(f'food_{0}', self, coords)
-            self.place_food(coords, f)
-            foods.append(f)
-            for i in range(1, total_food):
-                d = random.uniform(0, 1) ** (-1 / gamma)
-                if d > self.dim_grid / math.sqrt(2):
-                    d = random.uniform(1, self.dim_grid / math.sqrt(2))
-                starting_pos = random.choice(foods).pos
-                possible_positions = self.get_cells_from(starting_pos, False, int(d))
-                coords = random.choice(possible_positions)
-                f = Food(f'food_{i}', self, coords)
-                self.place_food(coords, f)
-                foods.append(f)
-        elif gamma == 0:
-            for i in range(total_food):
-                coords = (random.randrange(0, self.dim_grid), random.randrange(0, self.dim_grid))
-                f = Food(f'food_{i}', self, coords)
-                self.place_food(coords, f)

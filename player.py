@@ -60,11 +60,11 @@ class SocialWorm(SolitaryWorm):
             self.pos = new_pos
 
 class Food(mesa.Agent):
-    def __init__(self, name: str, model: mesa.Model, pos: Tuple[int]):
+    def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], quantity: int = 1):
         super().__init__(name, model)
         self.name = name
         self.pos = pos
-        self.quantity = 1
+        self.quantity = quantity
 
     def increase(self) -> None:
         self.quantity += 1

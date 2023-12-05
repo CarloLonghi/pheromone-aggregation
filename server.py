@@ -62,7 +62,15 @@ model_params = {
         "Social Agents",
         False,
     ),
-
+    "multispot": mesa.visualization.Checkbox(
+        "Multispot Food Distribution",
+        False,
+    ),
+    "num_spots": mesa.visualization.Choice(
+        "Number of food spots",
+        1,
+        [1, 2, 4],
+    ),
 }
 
 canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, GRID_SIZE, GRID_SIZE, 600, 600)
