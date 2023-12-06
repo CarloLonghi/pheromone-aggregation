@@ -87,8 +87,8 @@ class WormSimulator(mesa.Model):
 
     def clustered_agents(self, num_agents: int, social: bool, strain_specific: bool = False) -> None:
         """Implements the clustered initial positions for the worms"""
-        cluster_position = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.grid.dim_grid))
-        radius = math.ceil(math.sqrt(num_agents)) // 2
+        radius = math.ceil(math.sqrt(num_agents) / 2)
+        cluster_position = (self.random.randrange(radius, self.grid.dim_grid - radius), self.random.randrange(radius, self.grid.dim_grid - radius))
         neighborhood = self.grid.get_neighborhood(cluster_position, True, True, radius)
         positions = self.random.sample(neighborhood, num_agents)
         for i in range(num_agents):
