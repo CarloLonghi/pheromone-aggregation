@@ -46,7 +46,7 @@ class WormSimulator(mesa.Model):
             foods.append(f)
             for i in range(1, total_food):
                 d = self.random.uniform(0, 1) ** (-1 / gamma)
-                if d > self.grid.dim_grid / math.sqrt(2):
+                if d > (self.grid.dim_grid / math.sqrt(2)):
                     d = self.random.uniform(1, self.grid.dim_grid / math.sqrt(2))
                 starting_pos = self.random.choice(foods).pos
                 possible_positions = self.grid.get_neighborhood_dist(starting_pos, False, int(d))
