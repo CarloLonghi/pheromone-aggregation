@@ -1,7 +1,8 @@
-from model import WormSimulator, SolitaryWorm, SocialWorm, Food
+from model import WormSimulator, SolitaryWorm, SocialWorm, Food, SPSocialWorm, SPSolitaryWorm
 import mesa
 from typing import Dict
 from colour import Color
+import math
 
 WORM_COLOR = "#FF0000"
 FOOD_PALETTE = list(Color('blue').range_to(Color('yellow'), 50))
@@ -17,13 +18,8 @@ def agent_portrayal(agent: mesa.Agent) -> Dict:
         "Filled": "true",
     }
 
-    if type(agent) is SolitaryWorm:
-        portrayal["Shape"] = "circle"
-        portrayal["Color"] = WORM_COLOR
-        portrayal["r"] = 0.5
-        portrayal["Layer"] = 1
-
-    if type(agent) is SocialWorm:
+    if (type(agent) is SolitaryWorm or type(agent) is SocialWorm or
+        type(agent) is SPSolitaryWorm or type(agent) is SPSocialWorm):
         portrayal["Shape"] = "circle"
         portrayal["Color"] = WORM_COLOR
         portrayal["r"] = 0.5
@@ -39,6 +35,7 @@ def agent_portrayal(agent: mesa.Agent) -> Dict:
     return portrayal
 
 def food_color(qty: int) -> int:
+    qty = math.ceil(qty)
     if qty >= len(FOOD_PALETTE):
         return FOOD_PALETTE[-1].hex
     else:
@@ -46,6 +43,10 @@ def food_color(qty: int) -> int:
         
 
 model_params = {
+    "strain_specific": mesa.visualization.Checkbox(
+        "Strain Specific Model",
+        False,
+    ),
     "n_agents": mesa.visualization.Slider(
         "Number of agents",
         40,

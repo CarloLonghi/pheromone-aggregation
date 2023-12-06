@@ -37,11 +37,11 @@ class WormEnvironment(mesa.space.MultiGrid):
             if self._empties_built:
                 self._empties.discard(pos)
 
-    def consume_food(self, pos: Coordinate) -> None:
+    def consume_food(self, pos: Coordinate, qty: float = 1) -> None:
         x, y = pos
         food = [agent for agent in self._grid[x][y] if type(agent) == Food]
         if len(food) > 0:
-            food[0].consume()
+            food[0].consume(qty)
 
     def food_quantity(self, pos: Coordinate) -> int:
         x, y = pos
@@ -50,7 +50,7 @@ class WormEnvironment(mesa.space.MultiGrid):
     def get_total_food(self) -> int:
         return sum([self.food_quantity(pos) for _, pos in self.coord_iter()])
     
-    def get_cells_from(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
+    def get_neighborhood_dist(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
         """
         Returns a list of cells at a certain distance of a certain point.
         It works as get_neighborhood but only returns those cells on the border of the neighborhood.
@@ -68,7 +68,7 @@ class WormEnvironment(mesa.space.MultiGrid):
         x, y = pos
         cells = []
 
-        for cell in self.iter_neighborhood(pos, moore, False, radius):
+        for cell in self.get_neighborhood(pos, moore, False, radius):
             dx = abs(cell[0] - x)
             dy = abs(cell[1] - y)
             if self.torus:
@@ -81,3 +81,21 @@ class WormEnvironment(mesa.space.MultiGrid):
                 if dx + dy == radius:
                     cells.append(cell)
         return cells
+    
+    def get_neighbors_dist(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
+        """
+        Returns a list of neighbors at a certain distance of a certain point.
+        It works as get_neighborhood but only returns those cells on the border of the neighborhood.
+        Args:
+            pos: Coordinate tuple for the neighborhood to get.
+            moore: If True, return Moore neighborhood
+                   (including diagonals)
+                   If False, return Von Neumann neighborhood
+                   (exclude diagonals)
+            radius: radius, in cells, of neighborhood to get.
+
+        Returns:
+            A list of coordinate tuples representing the cells at distance d.
+        """
+        neighborhood = self.get_neighborhood_dist(pos, moore, radius)
+        return list(self.iter_cell_list_contents(neighborhood))

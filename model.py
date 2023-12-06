@@ -1,12 +1,13 @@
 import mesa
-from player import SolitaryWorm, SocialWorm, Food
+from player import SolitaryWorm, SocialWorm, Food, SPSocialWorm, SPSolitaryWorm
 from environment import WormEnvironment
 import math
 import random
+from typing import Tuple
 
 class WormSimulator(mesa.Model):
     def __init__(self, n_agents: int, n_food: int, clustering: int, dim_grid: int, social: bool,
-                  multispot: bool, num_spots: int, clustered: bool):
+                  multispot: bool, num_spots: int, clustered: bool, strain_specific: bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = WormEnvironment(dim_grid, torus=True)
@@ -14,16 +15,12 @@ class WormSimulator(mesa.Model):
         if clustered:
             self.clustered_agents(n_agents, social)
         else:
+            grid_coords = [pos for _, pos in self.grid.coord_iter()]
+            positions = self.random.sample(grid_coords, n_agents)
             for i in range(n_agents):
-                coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
-                while not self.grid.is_cell_empty(coords):
-                    coords = (self.random.randrange(0, dim_grid), self.random.randrange(0, dim_grid))
-                if social:
-                    a = SocialWorm(i, self, coords)
-                else:
-                    a = SolitaryWorm(i, self, coords)
+                a = WormSimulator.get_agent(self, social, strain_specific, i, positions[i])
                 self.schedule.add(a)
-                self.grid.place_agent(a, coords)
+                self.grid.place_agent(a, a.pos)
 
         total_food = n_food
         if multispot:
@@ -52,7 +49,7 @@ class WormSimulator(mesa.Model):
                 if d > self.grid.dim_grid / math.sqrt(2):
                     d = self.random.uniform(1, self.grid.dim_grid / math.sqrt(2))
                 starting_pos = self.random.choice(foods).pos
-                possible_positions = self.grid.get_cells_from(starting_pos, False, int(d))
+                possible_positions = self.grid.get_neighborhood_dist(starting_pos, False, int(d))
                 coords = self.random.choice(possible_positions)
                 f = Food(f'food_{i}', self, coords)
                 self.grid.place_food(coords, f)
@@ -83,21 +80,33 @@ class WormSimulator(mesa.Model):
 
         for i in range(num_spots):
             neighborhood = self.grid.get_neighborhood(spot_pos[i], True, True, radius)
-            food_per_cell = total_food // len(neighborhood)
+            food_per_cell = total_food // num_spots // len(neighborhood)
             for cell in neighborhood:
                 f = Food(f'food_{i}', self, cell, quantity=food_per_cell)
                 self.grid.place_food(cell, f)
 
-    def clustered_agents(self, num_agents: int, social: bool) -> None:
+    def clustered_agents(self, num_agents: int, social: bool, strain_specific: bool = False) -> None:
         """Implements the clustered initial positions for the worms"""
         cluster_position = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.grid.dim_grid))
         radius = math.ceil(math.sqrt(num_agents)) // 2
         neighborhood = self.grid.get_neighborhood(cluster_position, True, True, radius)
-        positions = random.sample(neighborhood, num_agents)
+        positions = self.random.sample(neighborhood, num_agents)
         for i in range(num_agents):
-            if social:
-                a = SocialWorm(i, self, positions[i])
-            else:
-                a = SolitaryWorm(i, self, positions[i])
+            a = WormSimulator.get_agent(self, social, strain_specific, i, positions[i])
             self.schedule.add(a)
-            self.grid.place_agent(a, positions[i])
+            self.grid.place_agent(a, a.pos)
+
+    @staticmethod
+    def get_agent(model: mesa.Model, social: bool, strain_specific: bool, n: int, pos: Tuple[int]) -> mesa.Agent:
+        agent = None
+        if strain_specific:
+            if social:
+                agent = SPSocialWorm(n, model, pos)
+            else:
+                agent = SPSolitaryWorm(n, model, pos)
+        else:
+            if social:
+                agent = SocialWorm(n, model, pos)
+            else:
+                agent = SolitaryWorm(n, model, pos)
+        return agent
