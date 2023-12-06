@@ -10,7 +10,7 @@ class WormSimulator(mesa.Model):
                   multispot: bool, num_spots: int, clustered: bool, strain_specific: bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
-        self.grid = WormEnvironment(dim_grid, torus=True)
+        self.grid = WormEnvironment(dim_grid, torus=False)
 
         if clustered:
             self.clustered_agents(n_agents, social)

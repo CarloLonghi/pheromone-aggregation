@@ -72,6 +72,7 @@ model_params = {
         1,
         0,
         3,
+        step=0.5
     ),
     "dim_grid": GRID_SIZE,
     "multispot": mesa.visualization.Checkbox(
