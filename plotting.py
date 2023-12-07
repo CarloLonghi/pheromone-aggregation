@@ -34,9 +34,10 @@ def plot_mean_with_df(file_name: str, group:str,x_axes:str):
     scatter = sns.scatterplot(data=sp, x=x_axes, y='Mean time', hue=group, s=100, zorder=10)
     handles, _ = scatter.get_legend_handles_labels()  # Get legend handles and labels
 
-    # Create custom legend with scatter plot markers
-    custom_legend = plt.legend(handles=handles, labels=['npr-1','N2'], loc='best')
-
+    if group == "Strain specific":
+        custom_legend = plt.legend(handles=handles, labels=['npr-1','N2'], loc='best')
+    else:
+        custom_legend = plt.legend(handles=handles, labels=['solitary agent', 'social agent'], loc='best')
     for handle in custom_legend.legendHandles:
         handle.set_alpha(1)  # Set the opacity of legend markers to 1
 
