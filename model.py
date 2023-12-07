@@ -6,7 +6,7 @@ import random
 from typing import Tuple
 
 class WormSimulator(mesa.Model):
-    def __init__(self, n_agents: int, n_food: int, clustering: int, dim_grid: int, social: bool,
+    def __init__(self, n_agents: int, n_food: int, clustering: float, dim_grid: int, social: bool,
                   multispot: bool, num_spots: int, clustered: bool, strain_specific: bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
@@ -36,7 +36,7 @@ class WormSimulator(mesa.Model):
         self.schedule.step()
         self.datacollector.collect(self)
 
-    def smoothly_varying_food(self, total_food: int, gamma: int = 0) -> None:
+    def smoothly_varying_food(self, total_food: int, gamma: float = 0) -> None:
         """Implements the smoothly varying inhomogeneous food distribution from the paper"""
         if gamma > 0:
             foods = []

@@ -1,42 +1,53 @@
+import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def plot_mean_with_df(file_name:str):
-    data = pd.read_csv('CSV/'+file_name+'.csv')
+def plot_mean_with_df(file_name: str, group:str,x_axes:str):
+    data = pd.read_csv('../CSV/' + file_name + '.csv')
     sp = data
-    sp['Mean time'] /= 100
-    sp['Standard deviation'] /= 100
-    # Create a plot using Seaborn
-    sns.set(style="whitegrid")  # Set the style
 
-    # Create a boxplot with mean and standard deviation
-    sns.scatterplot(data=sp, x='Number of spots', y='Mean time', hue='Strain specific', s=100)  # Plot the mean time
-    for i, row in sp.iterrows():
-        if row['Strain specific']:  # True
-            plt.errorbar(row['Number of spots'], row['Mean time'], yerr=row['Standard deviation'], fmt='none',
-                         color='red', capsize=5, capthick=2)
-        else:  # False
-            plt.errorbar(row['Number of spots'], row['Mean time'], yerr=row['Standard deviation'], fmt='none',
-                         color='blue', capsize=5, capthick=2)
-    for strain, group in sp.groupby('Strain specific'):
+    sp['Mean time'] = ((sp['Mean time'] * 10) / 60) / 60
+    sp['Standard deviation'] = ((sp['Standard deviation'] * 10) / 60) / 60
+
+    sns.set(style="whitegrid")
+
+
+    for strain, g in sp.groupby(group):
         if strain:
             linestyle = '--'
-            color = 'red'
+            color = '#C44E52'
         else:
             linestyle = '-.'
-            color = 'blue'
-        plt.plot(group['Number of spots'], group['Mean time'], linestyle=linestyle, marker='', color=color, dashes=[2, 2])
+            color = '#4C72B0'
+        plt.plot(g[x_axes], g['Mean time'], linestyle=linestyle, marker='', color=color,
+                 dashes=[2, 2])
 
-    # Rename the legend
-    plt.legend(labels=['N2', 'nrp-1'])  # Modify the labels here
+    for i, row in sp.iterrows():
+        if row[group]:  # True
+            plt.errorbar(row[x_axes], row['Mean time'], yerr=row['Standard deviation'], fmt='none',
+                         color='#C44E52', capsize=5, capthick=2)
+        else:  # False
+            plt.errorbar(row[x_axes], row['Mean time'], yerr=row['Standard deviation'], fmt='none',
+                         color='#4C72B0', capsize=5, capthick=2)
+
+    scatter = sns.scatterplot(data=sp, x=x_axes, y='Mean time', hue=group, s=100, zorder=10)
+    handles, _ = scatter.get_legend_handles_labels()  # Get legend handles and labels
+
+    # Create custom legend with scatter plot markers
+    custom_legend = plt.legend(handles=handles, labels=['npr-1','N2'], loc='best')
+
+    for handle in custom_legend.legendHandles:
+        handle.set_alpha(1)  # Set the opacity of legend markers to 1
 
     plt.xlabel('no. food spots')
     plt.ylabel('time (h)')
-    plt.title('Figure 4 (b) replica')
-    plt.xticks([1, 2, 4])
-    plt.ylim(0)
-    plt.savefig("plots/"+file_name+".png")
-    plt.show()
 
-plot_mean_with_df("default")
+    plt.xticks(sp[x_axes])
+    plt.yticks(range(0, int(max(sp['Mean time'])) + 3))
+
+
+    if not os.path.exists("../plots"):
+        os.makedirs("../plots")
+    plt.savefig("../plots/" + file_name + ".png")
+    plt.show()
