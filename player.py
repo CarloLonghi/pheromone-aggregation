@@ -110,7 +110,7 @@ class SPSocialWorm(SPSolitaryWorm, SocialWorm):
     """Class for the social worm in the strain-specific model"""
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], leaving_probability: float = 0):
         super().__init__(name, model, pos, leaving_probability)
-        self.feeding_rate = 0.4
+        self.feeding_rate = 0.4 * 0.62
 
     def at_food_border(self) -> bool:
         at_border = False
