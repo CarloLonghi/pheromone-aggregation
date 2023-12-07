@@ -63,7 +63,7 @@ class SocialWorm(SolitaryWorm):
     def targeted_step(self, neighborhood: Sequence[Coordinate], worm_neighbors: Sequence[mesa.Agent]) -> Sequence[Coordinate]:
         social_neighborhood = set()
         for worm in worm_neighbors:
-            other_neighborhood = self.model.grid.get_neighborhood_dist(worm.pos, moore=True, radius=1) # TODO check the radius is correct for targeted steps in the remote nh
+            other_neighborhood = self.model.grid.get_neighborhood_dist(worm.pos, moore=True, radius=1)
             common_neighborhood = set(neighborhood).intersection(set(other_neighborhood))
             social_neighborhood = social_neighborhood.union(common_neighborhood)
         return list(social_neighborhood)
@@ -88,7 +88,7 @@ class SPSolitaryWorm(SolitaryWorm):
         if self.sense_food():
             if self.at_food_border():
                 r = self.random.randint(0, 1)
-                if r <= self.leaving_probability: # leave food
+                if r < self.leaving_probability: # leave food
                     neighborhood = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=2)
                     neighborhood = [cell for cell in neighborhood if not self.model.grid.has_food(cell)]
                 else: # stay on food
@@ -110,7 +110,7 @@ class SPSocialWorm(SPSolitaryWorm, SocialWorm):
     """Class for the social worm in the strain-specific model"""
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], leaving_probability: float = 0):
         super().__init__(name, model, pos, leaving_probability)
-        self.feeding_rate = 0.4 * 0.62
+        self.feeding_rate = 0.4
 
     def at_food_border(self) -> bool:
         at_border = False
@@ -131,7 +131,7 @@ class SPSocialWorm(SPSolitaryWorm, SocialWorm):
     def move(self) -> None:
         if self.sense_food():
             r = self.random.randint(0, 1)
-            if self.at_food_border() and r <= self.leaving_probability: # leave food
+            if self.at_food_border() and r < self.leaving_probability: # leave food
                 neighborhood = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False, radius=2)
                 neighborhood = [cell for cell in neighborhood if not self.model.grid.has_food(cell)]
             else:
@@ -145,6 +145,9 @@ class SPSocialWorm(SPSolitaryWorm, SocialWorm):
                     if len(remote_neighbors) > 0:
                         neighborhood = self.model.grid.get_neighborhood_dist(self.pos, moore=True, radius=2)
                         neighborhood = self.targeted_step(neighborhood, remote_neighbors)
+                        neighborhood = [cell for cell in neighborhood if self.model.grid.has_food(cell)]
+                    else:
+                        neighborhood = self.model.grid.get_neighborhood_dist(self.pos, moore=True, radius=2)
                         neighborhood = [cell for cell in neighborhood if self.model.grid.has_food(cell)]
         else:
             neighborhood = self.model.grid.get_neighborhood_dist(self.pos, moore=True, radius=2)

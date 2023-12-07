@@ -10,7 +10,7 @@ for num_spots in [1, 2, 4]:
     timesteps = []
     for i in range(NUM_EXPERIMENTS):
         model = WormSimulator(n_agents=35, n_food=N_FOOD, clustering=1, dim_grid=GRID_SIZE, social=True,
-                            multispot=True, num_spots=1, clustered=True, strain_specific=True)
+                            multispot=True, num_spots=num_spots, clustered=True, strain_specific=True)
 
         total_food = model.grid.get_total_food()
         step_count = 0

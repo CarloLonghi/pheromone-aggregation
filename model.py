@@ -10,15 +10,15 @@ class WormSimulator(mesa.Model):
                   multispot: bool, num_spots: int, clustered: bool, strain_specific: bool):
         super().__init__()
         self.schedule = mesa.time.RandomActivation(self)
-        self.grid = WormEnvironment(dim_grid, torus=False)
+        self.grid = WormEnvironment(dim_grid, torus=True)
 
         if clustered:
-            self.clustered_agents(n_agents, social)
+            self.clustered_agents(n_agents, social, strain_specific, multispot, num_spots)
         else:
             grid_coords = [pos for _, pos in self.grid.coord_iter()]
             positions = self.random.sample(grid_coords, n_agents)
             for i in range(n_agents):
-                a = WormSimulator.get_agent(self, social, strain_specific, i, positions[i])
+                a = WormSimulator.create_agent(self, social, strain_specific, i, positions[i])
                 self.schedule.add(a)
                 self.grid.place_agent(a, a.pos)
 
@@ -85,19 +85,26 @@ class WormSimulator(mesa.Model):
                 f = Food(f'food_{i}', self, cell, quantity=food_per_cell)
                 self.grid.place_food(cell, f)
 
-    def clustered_agents(self, num_agents: int, social: bool, strain_specific: bool = False) -> None:
+    def clustered_agents(self, num_agents: int, social: bool, strain_specific: bool = False,
+                          multispot: bool = False, num_spots: int = 1) -> None:
         """Implements the clustered initial positions for the worms"""
         radius = math.ceil(math.sqrt(num_agents) / 2)
-        cluster_position = (self.random.randrange(radius, self.grid.dim_grid - radius), self.random.randrange(radius, self.grid.dim_grid - radius))
+        if multispot:
+            if num_spots == 1 or num_spots == 2:
+                cluster_position = (self.grid.dim_grid - radius - 1, radius)
+            else:
+                cluster_position = (self.grid.dim_grid // 2, self.grid.dim_grid // 2)
+        else:
+            cluster_position = (self.random.randrange(0, self.grid.dim_grid), self.random.randrange(0, self.grid.dim_grid))
         neighborhood = self.grid.get_neighborhood(cluster_position, True, True, radius)
         positions = self.random.sample(neighborhood, num_agents)
         for i in range(num_agents):
-            a = WormSimulator.get_agent(self, social, strain_specific, i, positions[i])
+            a = WormSimulator.create_agent(self, social, strain_specific, i, positions[i])
             self.schedule.add(a)
             self.grid.place_agent(a, a.pos)
 
     @staticmethod
-    def get_agent(model: mesa.Model, social: bool, strain_specific: bool, n: int, pos: Tuple[int]) -> mesa.Agent:
+    def create_agent(model: mesa.Model, social: bool, strain_specific: bool, n: int, pos: Tuple[int]) -> mesa.Agent:
         agent = None
         if strain_specific:
             if social:
