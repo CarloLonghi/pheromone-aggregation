@@ -1,4 +1,6 @@
 import os
+
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -53,6 +55,7 @@ def plot_frequencies(file_name: str, legend):
     data = pd.read_csv(csv_dir + file_name + '_frequencies.csv')
     data['Sense Frequency'] = data['Sense Frequency'].apply(ast.literal_eval)
     data['Food consumption'] = data['Food consumption'].apply(ast.literal_eval)
+    data['Sense Frequency'] = data['Sense Frequency'].apply(lambda x: [val * 100 for val in x])
     fig, axes = plt.subplots(2, 2, figsize=(12, 12))
 
     for i, social_value in enumerate([True, False]):
@@ -69,13 +72,15 @@ def plot_frequencies(file_name: str, legend):
         sns.kdeplot(data=p_food, ax=axes[1, i], multiple="stack", legend=False,alpha=.7,palette="magma")
 
 
-        axes[0, i].set_xlim(0, 1)
-        axes[0, i].set_xlabel('Individual foraging efficiency')
-        axes[0, i].set_ylabel('Density Estimation')
+
+
+        axes[0, i].set_xlim(0, 100)
+        axes[0, i].set_xlabel('Individual foraging efficiency (%)')
+        axes[0, i].set_ylabel('KDE')
         axes[0, i].set_title('Social - nrp-1' if social_value else 'Solitary - N2')
 
         axes[1, i].set_xlabel('Individual food consumption')
-        axes[1, i].set_ylabel('Density Estimation')
+        axes[1, i].set_ylabel('KDE')
 
     label = data[data['Social'] == True]
     axes[0, 0].legend(legend + " = " + label[legend].astype(str), loc=9)
