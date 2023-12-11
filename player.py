@@ -32,10 +32,11 @@ class SolitaryWorm(mesa.Agent):
             new_pos = self.random.choice(possible_moves)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
+        self.update_foraging_metrics()
 
     def consume_food(self) -> None:
         self.model.grid.consume_food(self.pos, self.feeding_rate)
-        self.consumed_food+=1
+        self.consumed_food+=self.feeding_rate
 
     def is_worm(self) -> bool:
         return True
@@ -77,6 +78,7 @@ class SocialWorm(SolitaryWorm):
             new_pos = self.random.choice(neighborhood)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
+        self.update_foraging_metrics()
 
     def targeted_step(self, neighborhood: Sequence[Coordinate], worm_neighbors: Sequence[mesa.Agent]) -> Sequence[Coordinate]:
         social_neighborhood = set()

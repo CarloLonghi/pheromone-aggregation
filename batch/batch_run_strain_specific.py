@@ -18,7 +18,7 @@ if len(sys.argv) > 1:
     file_name = str(sys.argv[1])
 else:
     print("File name set to default")
-    file_name = "strain_specific"
+    file_name = "cluster_false_test"
 
 
 def run_experiment(social:bool,strain_specific:bool):
@@ -33,7 +33,7 @@ def run_experiment(social:bool,strain_specific:bool):
         food_consumption = []
         for _ in tqdm(range(NUM_EXPERIMENTS), desc= (f'Running {i}/{len(all_spots)} -> Social: {social} - Strain specific: {strain_specific} with {num_spots} spots'),position=0,leave=True):
             model = WormSimulator(n_agents=35, n_food=N_FOOD, clustering=1, dim_grid=GRID_SIZE, social=social,
-                                  multispot=True, num_spots=1, clustered=True, strain_specific=strain_specific)
+                                  multispot=True, num_spots=1, clustered=False, strain_specific=strain_specific)
 
             total_food = model.grid.get_total_food()
             step_count = 0
@@ -66,7 +66,7 @@ def run_experiment(social:bool,strain_specific:bool):
 
 results = [["Social","Strain specific","Number of spots","Mean time","Standard deviation"]]
 f = [["Number of spots","Social","Sense Frequency","Food consumption"]]
-experiment = [
+experiment = [  # Social, Strain Specific
     [True,True],
     [False,True]
 ]
@@ -87,5 +87,5 @@ with open("../CSV/"+file_name+"_frequencies.csv", 'w', newline='') as csv_file:
     csv_writer.writerows(f)
 
 print(f"List has been saved as '{file_name}.csv'")
-plot_mean_with_df(file_name,"Social","Number of spots")
+plot_mean_with_df(file_name,"Number of spots")
 plot_frequencies(file_name, "Number of spots")

@@ -6,6 +6,7 @@ from typing import Sequence
 import math
 from random import Random
 
+
 class WormEnvironment(mesa.space.MultiGrid):
 
     def __init__(self, dim_grid: int, torus: bool) -> None:
@@ -19,17 +20,17 @@ class WormEnvironment(mesa.space.MultiGrid):
         x, y = pos
         num_worms = sum([type(agent) != Food for agent in self._grid[x][y]])
         return num_worms == 0
-    
+
     def has_food(self, pos: Coordinate) -> bool:
         x, y = pos
         num_food = sum([type(agent) == Food for agent in self._grid[x][y]])
         return num_food > 0
-    
+
     def get_neighbor_worms(self, pos: Coordinate, moore: bool, radius: int = 1) -> list[Agent]:
         agents = list(self.iter_neighbors(pos, moore, False, radius))
         worms = [a for a in agents if a.is_worm()]
         return worms
-    
+
     def place_food(self, pos: Coordinate, f: Food) -> None:
         x, y = pos
         food = [agent for agent in self._grid[x][y] if type(agent) == Food]
@@ -52,7 +53,7 @@ class WormEnvironment(mesa.space.MultiGrid):
 
     def get_total_food(self) -> int:
         return sum([self.food_quantity(pos) for _, pos in self.coord_iter()])
-    
+
     def get_neighborhood_dist(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
         """
         Returns a list of cells at a certain distance of a certain point.
@@ -84,7 +85,7 @@ class WormEnvironment(mesa.space.MultiGrid):
                 if dx + dy == radius:
                     cells.append(cell)
         return cells
-    
+
     def get_neighbors_dist(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
         """
         Returns a list of neighbors at a certain distance of a certain point.
@@ -101,22 +102,5 @@ class WormEnvironment(mesa.space.MultiGrid):
             A list of coordinate tuples representing the cells at distance d.
         """
         neighborhood = self.get_neighborhood_dist(pos, moore, radius)
-        neighbors =  list(self.iter_cell_list_contents(neighborhood))
+        neighbors = list(self.iter_cell_list_contents(neighborhood))
         return [n for n in neighbors if n.is_worm()]
-
-    def update_foraging_metrics(self, agent: Agent) -> None:
-        # Update foraging metrics based on agent's actions
-        # Call this method after the agent completes its move or foraging action
-        self.foraging_attempts += 1
-        # Implement logic to update successful foraging attempts and energy consumption based on the agent's success
-        if agent.succeeded_in_forage():
-            self.successful_foraging_attempts += 1
-
-
-    def get_foraging_efficiency_data(self) -> dict:
-        # Return the recorded foraging efficiency data as a dictionary
-        return {
-            "foraging_attempts": self.foraging_attempts,
-            "successful_foraging_attempts": self.successful_foraging_attempts
-            # Add more metrics if needed
-        }

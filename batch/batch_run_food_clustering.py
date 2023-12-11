@@ -18,12 +18,12 @@ if len(sys.argv) > 1:
     file_name = str(sys.argv[1])
 else:
     print("File name set to default")
-    file_name = "20gen_1_food_clustering"
+    file_name = "10gen_1_minimal_food_clustering"
 
 
 def run_experiment(social:bool,strain_specific:bool):
     result = []
-    all_gamma = [x for x in range(0, 4)]
+    all_gamma = [0,0.5,1,1.5,2,3,4,5,6,8,10]
     all_frequencies = []
     i = 0
     for gamma in all_gamma:
@@ -34,7 +34,7 @@ def run_experiment(social:bool,strain_specific:bool):
         for _ in tqdm(range(NUM_EXPERIMENTS), desc=(f'Running {i}/{len(all_gamma)} -> Social: {social} - Strain specific: {strain_specific} with {gamma} degree of food clustering')
                 ,position=0,leave=True):
             model = WormSimulator(n_agents=40, n_food=N_FOOD, clustering = gamma, dim_grid=GRID_SIZE, social=social,
-                                  multispot=False, num_spots=1, clustered=True, strain_specific=strain_specific)
+                                  multispot=False, num_spots=1, clustered=False, strain_specific=strain_specific)
 
             total_food = model.grid.get_total_food()
             step_count = 0
@@ -64,7 +64,7 @@ def run_experiment(social:bool,strain_specific:bool):
 
 results = [["Social","Strain specific","Gamma","Mean time","Standard deviation"]]
 f = [["Gamma","Social","Sense Frequency","Food consumption"]]
-experiment = [
+experiment = [ # Social, Strain Specific
     [True,True],
     [False,True]
 ]
@@ -86,5 +86,6 @@ with open("../CSV/"+file_name+"_frequencies.csv", 'w', newline='') as csv_file:
     csv_writer.writerows(f)
 
 print(f"List has been saved as '{file_name}.csv'")
-plot_mean_with_df(file_name,"Social","Gamma")
+plot_mean_with_df(file_name,"Gamma")
+plot_mean_with_df(file_name,"Gamma",zoomed=True)
 plot_frequencies(file_name, "Gamma")
