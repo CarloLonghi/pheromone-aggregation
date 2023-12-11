@@ -98,4 +98,5 @@ class WormEnvironment(mesa.space.MultiGrid):
             A list of coordinate tuples representing the cells at distance d.
         """
         neighborhood = self.get_neighborhood_dist(pos, moore, radius)
-        return list(self.iter_cell_list_contents(neighborhood))
+        neighbors =  list(self.iter_cell_list_contents(neighborhood))
+        return [n for n in neighbors if n.is_worm()]
