@@ -12,6 +12,10 @@ class SolitaryWorm(mesa.Agent):
         self.feeding_rate = 1
         self.sensing_range = 1
 
+        self.foraging_attempts = 0
+        self.successful_foraging_attempts = 0
+        self.consumed_food = 0
+
     def sense_food(self) -> bool:
         neighborhood = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=True, radius=self.sensing_range)
         food = [self.model.grid.has_food(cell) for cell in neighborhood]
@@ -27,10 +31,11 @@ class SolitaryWorm(mesa.Agent):
         if len(possible_moves) > 0:
             new_pos = self.random.choice(possible_moves)
             self.model.grid.move_agent(self, new_pos)
-            self.pos = new_pos  
+            self.pos = new_pos
 
     def consume_food(self) -> None:
         self.model.grid.consume_food(self.pos, self.feeding_rate)
+        self.consumed_food+=1
 
     def is_worm(self) -> bool:
         return True
@@ -39,6 +44,19 @@ class SolitaryWorm(mesa.Agent):
         self.consume_food()
         self.move()
 
+    def update_foraging_metrics(self) -> None:
+        # Update foraging metrics based on agent's actions
+        self.foraging_attempts += 1
+        if self.sense_food():
+            self.successful_foraging_attempts += 1
+
+    def retrieve_foraging_efficiency_data(self) -> dict:
+        # Return the recorded foraging efficiency data as a dictionary for this agent
+        return {
+            "foraging_attempts": self.foraging_attempts,
+            "successful_foraging_attempts": self.successful_foraging_attempts,
+            "consumed_food":self.consumed_food
+        }
 class SocialWorm(SolitaryWorm):
     """Class for the social worm in the minimal model"""
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int]):
@@ -76,6 +94,7 @@ class SPSolitaryWorm(SolitaryWorm):
         self.leaving_probability = leaving_probability
         self.sensing_range = 0
 
+
     def at_food_border(self) -> bool:
         at_border = False
         direct_neighborhood = self.model.grid.get_neighborhood_dist(self.pos, moore=True, radius=1)
@@ -99,18 +118,23 @@ class SPSolitaryWorm(SolitaryWorm):
                 neighborhood = [cell for cell in neighborhood if self.model.grid.has_food(cell)]
         else:
             neighborhood = self.model.grid.get_neighborhood_dist(self.pos, moore=True, radius=2)
-            
+
         possible_moves = [n for n in neighborhood if self.model.grid.is_cell_free(n)]
         if len(possible_moves) > 0:
             new_pos = self.random.choice(possible_moves)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
 
+        self.update_foraging_metrics()
+
+
+
 class SPSocialWorm(SPSolitaryWorm, SocialWorm):
     """Class for the social worm in the strain-specific model"""
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], leaving_probability: float = 0):
         super().__init__(name, model, pos, leaving_probability)
         self.feeding_rate = 0.4 * 0.62
+
 
     def at_food_border(self) -> bool:
         at_border = False
@@ -157,6 +181,7 @@ class SPSocialWorm(SPSolitaryWorm, SocialWorm):
             new_pos = self.random.choice(possible_moves)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
+        self.update_foraging_metrics()
 
 class Food(mesa.Agent):
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], quantity: float = 1):

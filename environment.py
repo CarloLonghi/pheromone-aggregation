@@ -11,6 +11,9 @@ class WormEnvironment(mesa.space.MultiGrid):
     def __init__(self, dim_grid: int, torus: bool) -> None:
         super().__init__(dim_grid, dim_grid, torus)
         self.dim_grid = dim_grid
+        # Additional attributes to track foraging efficiency metrics
+        self.foraging_attempts = 0
+        self.successful_foraging_attempts = 0
 
     def is_cell_free(self, pos: Coordinate) -> bool:
         x, y = pos
@@ -100,3 +103,20 @@ class WormEnvironment(mesa.space.MultiGrid):
         neighborhood = self.get_neighborhood_dist(pos, moore, radius)
         neighbors =  list(self.iter_cell_list_contents(neighborhood))
         return [n for n in neighbors if n.is_worm()]
+
+    def update_foraging_metrics(self, agent: Agent) -> None:
+        # Update foraging metrics based on agent's actions
+        # Call this method after the agent completes its move or foraging action
+        self.foraging_attempts += 1
+        # Implement logic to update successful foraging attempts and energy consumption based on the agent's success
+        if agent.succeeded_in_forage():
+            self.successful_foraging_attempts += 1
+
+
+    def get_foraging_efficiency_data(self) -> dict:
+        # Return the recorded foraging efficiency data as a dictionary
+        return {
+            "foraging_attempts": self.foraging_attempts,
+            "successful_foraging_attempts": self.successful_foraging_attempts
+            # Add more metrics if needed
+        }

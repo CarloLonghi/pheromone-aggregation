@@ -1,14 +1,15 @@
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor
+
 from tqdm import tqdm
 
 from model import WormSimulator
 import csv
 
-from plotting import plot_mean_with_df
+from player import Food
+from plotting import plot_mean_with_df, plot_frequencies
 
-NUM_EXPERIMENTS = 100
+NUM_EXPERIMENTS = 10
 GRID_SIZE = 35
 N_FOOD = GRID_SIZE**2 * 10
 
@@ -17,16 +18,19 @@ if len(sys.argv) > 1:
     file_name = str(sys.argv[1])
 else:
     print("File name set to default")
-    file_name = "food_clustering"
+    file_name = "20gen_1_food_clustering"
 
 
 def run_experiment(social:bool,strain_specific:bool):
     result = []
-    all_gamma = [x / 2 for x in range(0, 7)]
+    all_gamma = [x for x in range(0, 4)]
+    all_frequencies = []
     i = 0
     for gamma in all_gamma:
         timesteps = []
         i+=1
+        frequency = []
+        food_consumption = []
         for _ in tqdm(range(NUM_EXPERIMENTS), desc=(f'Running {i}/{len(all_gamma)} -> Social: {social} - Strain specific: {strain_specific} with {gamma} degree of food clustering')
                 ,position=0,leave=True):
             model = WormSimulator(n_agents=40, n_food=N_FOOD, clustering = gamma, dim_grid=GRID_SIZE, social=social,
@@ -40,22 +44,35 @@ def run_experiment(social:bool,strain_specific:bool):
 
             timesteps.append(step_count)
 
+            for cell_content in model.grid.coord_iter():
+                x, y = cell_content[1]
+                agents_on_cell = model.grid.get_cell_list_contents((x, y))
+                for agent in agents_on_cell:
+                    if not isinstance(agent, Food):
+                        # Access and perform actions with each agent here
+                        agent_specific_data = agent.retrieve_foraging_efficiency_data()
+                        data = list(agent_specific_data.values())
+                        frequency.append(round(data[1] / data[0], 2))
+                        food_consumption.append(data[2])
+        all_frequencies.append([gamma, social, frequency,food_consumption])
         mean = sum(timesteps) / len(timesteps)
         std_dev = (sum((x - mean) ** 2 for x in timesteps) / len(timesteps))**0.5
         result.append([social,strain_specific,gamma, mean,std_dev])
 
-    return result
+    return result, all_frequencies
 
 
 results = [["Social","Strain specific","Gamma","Mean time","Standard deviation"]]
+f = [["Gamma","Social","Sense Frequency","Food consumption"]]
 experiment = [
-    [True,False],
-    [False,False]
+    [True,True],
+    [False,True]
 ]
 for i in range(len(experiment)):
     print(f'Lauching simulation {i+1}/{len(experiment)}')
-    results += run_experiment(experiment[i][0], experiment[i][1])
-
+    exp_result , frequencies = run_experiment(experiment[i][0], experiment[i][1])
+    results += exp_result
+    f += frequencies
 
 if not os.path.exists("../CSV"):
     os.makedirs("../CSV")
@@ -64,5 +81,10 @@ with open("../CSV/"+file_name+".csv", 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file)
     csv_writer.writerows(results)
 
+with open("../CSV/"+file_name+"_frequencies.csv", 'w', newline='') as csv_file:
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerows(f)
+
 print(f"List has been saved as '{file_name}.csv'")
 plot_mean_with_df(file_name,"Social","Gamma")
+plot_frequencies(file_name, "Gamma")

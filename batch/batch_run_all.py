@@ -5,7 +5,7 @@ if len(sys.argv) > 1:
     file_name = str(sys.argv[1])
 else:
     print("File name set to default")
-    file_name = "experiment"
+    file_name = "10gen_1"
 
 sub = [
 ["python", "batch_run_strain_specific.py", file_name + "_strain_specific"],
