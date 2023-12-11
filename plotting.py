@@ -35,11 +35,14 @@ def plot_mean_with_df(file_name: str,x_axes:str,group:str = "Social",zoomed:bool
     plt.xlabel(x_axes)
     if zoomed:
         plt.xlim(0, 2)
+        plt.ylim(1.75,3)
+    else:
+        plt.ylim(0, None)
+        plt.yticks(range(0, int(max(sp['Mean time'])) + 3))
     if x_axes == "Number of spots":
         plt.xticks(sp[x_axes])
     plt.ylabel('time (h)')
-    plt.ylim(0, None)
-    plt.yticks(range(0, int(max(sp['Mean time'])) + 3))
+
     colors = ['#C44E52', '#4C72B0']
     scatter = sns.scatterplot(data=sp, x=x_axes, y='Mean time', hue=group, palette=colors, s=100, zorder=10)
     handles, _ = scatter.get_legend_handles_labels()
@@ -49,8 +52,10 @@ def plot_mean_with_df(file_name: str,x_axes:str,group:str = "Social",zoomed:bool
     for handle in custom_legend.legendHandles:
         handle.set_alpha(1)
 
-
-    plt.savefig(plot_dir + file_name + ".png")
+    if zoomed:
+        plt.savefig(plot_dir + file_name + "_zoomed.png")
+    else:
+        plt.savefig(plot_dir + file_name + ".png")
     plt.show()
 
 
@@ -92,5 +97,3 @@ def plot_frequencies(file_name: str, legend):
         os.makedirs(plot_dir)
     plt.savefig(plot_dir + file_name + "_frequencies.png")
     plt.show()
-
-plot_frequencies("10gen_1_food_clustering","Gamma")
