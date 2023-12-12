@@ -41,11 +41,12 @@ class WormEnvironment(mesa.space.MultiGrid):
             if self._empties_built:
                 self._empties.discard(pos)
 
-    def consume_food(self, pos: Coordinate, qty: float = 1) -> None:
+    def consume_food(self, pos: Coordinate, agent:SolitaryWorm, qty: float = 1) -> None:
         x, y = pos
         food = [agent for agent in self._grid[x][y] if type(agent) == Food]
         if len(food) > 0:
             food[0].consume(qty)
+            agent.consumed_food += agent.feeding_rate
 
     def food_quantity(self, pos: Coordinate) -> int:
         x, y = pos

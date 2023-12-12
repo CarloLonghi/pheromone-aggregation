@@ -1,7 +1,8 @@
 import mesa
 from mesa.space import Coordinate
 from typing import Tuple, Sequence
-from random import Random
+from mesa.datacollection import DataCollector
+
 
 class SolitaryWorm(mesa.Agent):
     """Class for the solitary worm in the minimal model"""
@@ -11,10 +12,8 @@ class SolitaryWorm(mesa.Agent):
         self.pos = pos
         self.feeding_rate = 1
         self.sensing_range = 1
-
-        self.foraging_attempts = 0
-        self.successful_foraging_attempts = 0
         self.consumed_food = 0
+
 
     def sense_food(self) -> bool:
         neighborhood = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=True, radius=self.sensing_range)
@@ -32,11 +31,12 @@ class SolitaryWorm(mesa.Agent):
             new_pos = self.random.choice(possible_moves)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
-        self.update_foraging_metrics()
+
+
 
     def consume_food(self) -> None:
-        self.model.grid.consume_food(self.pos, self.feeding_rate)
-        self.consumed_food+=self.feeding_rate
+        self.model.grid.consume_food(self.pos,self, self.feeding_rate)
+
 
     def is_worm(self) -> bool:
         return True
@@ -45,19 +45,9 @@ class SolitaryWorm(mesa.Agent):
         self.consume_food()
         self.move()
 
-    def update_foraging_metrics(self) -> None:
-        # Update foraging metrics based on agent's actions
-        self.foraging_attempts += 1
-        if self.sense_food():
-            self.successful_foraging_attempts += 1
 
-    def retrieve_foraging_efficiency_data(self) -> dict:
-        # Return the recorded foraging efficiency data as a dictionary for this agent
-        return {
-            "foraging_attempts": self.foraging_attempts,
-            "successful_foraging_attempts": self.successful_foraging_attempts,
-            "consumed_food":self.consumed_food
-        }
+
+
 class SocialWorm(SolitaryWorm):
     """Class for the social worm in the minimal model"""
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int]):
@@ -78,7 +68,8 @@ class SocialWorm(SolitaryWorm):
             new_pos = self.random.choice(neighborhood)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
-        self.update_foraging_metrics()
+
+
 
     def targeted_step(self, neighborhood: Sequence[Coordinate], worm_neighbors: Sequence[mesa.Agent]) -> Sequence[Coordinate]:
         social_neighborhood = set()
@@ -127,7 +118,7 @@ class SPSolitaryWorm(SolitaryWorm):
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
 
-        self.update_foraging_metrics()
+
 
 
 
@@ -183,7 +174,7 @@ class SPSocialWorm(SPSolitaryWorm, SocialWorm):
             new_pos = self.random.choice(possible_moves)
             self.model.grid.move_agent(self, new_pos)
             self.pos = new_pos
-        self.update_foraging_metrics()
+
 
 class Food(mesa.Agent):
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], quantity: float = 1):

@@ -64,28 +64,43 @@ def plot_frequencies(file_name: str, legend):
     data = pd.read_csv(csv_dir + file_name + '_frequencies.csv')
     data['Sense Frequency'] = data['Sense Frequency'].apply(ast.literal_eval)
     data['Food consumption'] = data['Food consumption'].apply(ast.literal_eval)
+
     if legend == "Gamma":
         data = data[data['Gamma'].isin([0, 1, 2, 3])]
-    data['Sense Frequency'] = data['Sense Frequency'].apply(lambda x: [val * 100 for val in x])
-    fig, axes = plt.subplots(2, 2, figsize=(12, 12))
 
+    fig, axes = plt.subplots(2, 2, figsize=(12, 12))
     for i, social_value in enumerate([True, False]):
         df = data[data['Social'] == social_value]
+
         p_sense = []
         p_food = []
         for array in df['Sense Frequency']:
+            '''
+            total_values = len(array)
+            value_counts = Counter(array)
+            relative_frequencies = {value: count / total_values for value, count in value_counts.items()}
+            values = list(relative_frequencies.keys())
+            frequencies = list(relative_frequencies.values())
+
+            data_list = []
+            for val, freq in zip(values, frequencies):
+                data_list.extend([val] * int(freq * len(values)))
+            sns.histplot(data=data_list,ax=axes[0, i],fill=False)
+'''
             p_sense.append(array)
         for array in df['Food consumption']:
             p_food.append(array)
 
-        sns.kdeplot(data=p_sense, ax=axes[0, i], legend=False,palette="magma",linewidth=1.5)
-        sns.kdeplot(data=p_food, ax=axes[1, i],legend=False,palette="magma",linewidth=1.5)
+        sns.kdeplot(data=p_sense, ax=axes[0, i], legend=False, palette="magma", fill=True)
+        sns.kdeplot(data=p_food, ax=axes[1, i],legend=False,palette="magma",fill=True)
 
-        axes[0, i].set_xlim(0, 100)
-        axes[0, i].set_xlabel('Individual foraging efficiency (%)')
+        axes[0, i].set_xlim(0, 1)
+        axes[0, i].set_xlabel('Individual foraging efficiency')
         axes[0, i].set_ylabel('KDE')
         axes[0, i].set_title('Social - nrp-1' if social_value else 'Solitary - N2')
 
+
+        axes[1, i].set_xlim(0, 800)
         axes[1, i].set_xlabel('Individual food consumption')
         axes[1, i].set_ylabel('KDE')
 
@@ -97,3 +112,5 @@ def plot_frequencies(file_name: str, legend):
         os.makedirs(plot_dir)
     plt.savefig(plot_dir + file_name + "_frequencies.png")
     plt.show()
+
+plot_frequencies("10gen_1_minimal_food_clustering","Gamma")

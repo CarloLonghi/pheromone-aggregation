@@ -29,10 +29,13 @@ class WormSimulator(mesa.Model):
             gamma = clustering
             self.smoothly_varying_food(total_food, gamma)
 
-        self.datacollector = mesa.DataCollector(model_reporters={"Food": self.grid.get_total_food}, agent_reporters={})
+        self.datacollector = mesa.DataCollector(model_reporters={"Food": self.grid.get_total_food},
+                                                agent_reporters={"ConsumedFood": lambda agent: agent.consumed_food,
+                                                                 "ForagingEfficiency": lambda agent: round(agent.consumed_food/(agent.model.schedule.steps + 1),2)})
         self.datacollector.collect(self)
 
     def step(self) -> None:
+        self.datacollector.collect(self)
         self.schedule.step()
         self.datacollector.collect(self)
 

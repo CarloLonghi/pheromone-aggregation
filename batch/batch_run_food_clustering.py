@@ -9,7 +9,7 @@ import csv
 from player import Food
 from plotting import plot_mean_with_df, plot_frequencies
 
-NUM_EXPERIMENTS = 10
+NUM_EXPERIMENTS = 1
 GRID_SIZE = 35
 N_FOOD = GRID_SIZE**2 * 10
 
@@ -23,14 +23,13 @@ else:
 
 def run_experiment(social:bool,strain_specific:bool):
     result = []
-    all_gamma = [0,0.5,1,1.5,2,3,4,5,6,8,10]
+    #all_gamma = [0,0.5,1,1.5,2,3,4,5,6,8,10]
+    all_gamma = [0,1,2,3]
     all_frequencies = []
     i = 0
     for gamma in all_gamma:
         timesteps = []
         i+=1
-        frequency = []
-        food_consumption = []
         for _ in tqdm(range(NUM_EXPERIMENTS), desc=(f'Running {i}/{len(all_gamma)} -> Social: {social} - Strain specific: {strain_specific} with {gamma} degree of food clustering')
                 ,position=0,leave=True):
             model = WormSimulator(n_agents=40, n_food=N_FOOD, clustering = gamma, dim_grid=GRID_SIZE, social=social,
@@ -44,17 +43,12 @@ def run_experiment(social:bool,strain_specific:bool):
 
             timesteps.append(step_count)
 
-            for cell_content in model.grid.coord_iter():
-                x, y = cell_content[1]
-                agents_on_cell = model.grid.get_cell_list_contents((x, y))
-                for agent in agents_on_cell:
-                    if not isinstance(agent, Food):
-                        # Access and perform actions with each agent here
-                        agent_specific_data = agent.retrieve_foraging_efficiency_data()
-                        data = list(agent_specific_data.values())
-                        frequency.append(round(data[1] / data[0], 2))
-                        food_consumption.append(data[2])
-        all_frequencies.append([gamma, social, frequency,food_consumption])
+            # Access and perform actions with each agent here
+        agent_data = model.datacollector.get_agent_vars_dataframe()
+        last_step_index = agent_data.index.get_level_values('Step').max()
+        last_step_data = agent_data.loc[last_step_index]
+
+        all_frequencies.append([gamma, social, last_step_data['ForagingEfficiency'].tolist(),last_step_data['ConsumedFood'].tolist()])
         mean = sum(timesteps) / len(timesteps)
         std_dev = (sum((x - mean) ** 2 for x in timesteps) / len(timesteps))**0.5
         result.append([social,strain_specific,gamma, mean,std_dev])
@@ -87,5 +81,5 @@ with open("../CSV/"+file_name+"_frequencies.csv", 'w', newline='') as csv_file:
 
 print(f"List has been saved as '{file_name}.csv'")
 plot_mean_with_df(file_name,"Gamma")
-plot_mean_with_df(file_name,"Gamma",zoomed=True)
+#plot_mean_with_df(file_name,"Gamma",zoomed=True)
 plot_frequencies(file_name, "Gamma")
