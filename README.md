@@ -6,7 +6,7 @@ pip install mesa
 ```
 2 - Clone this repository
 ```
-git clone https://github.com/CarloLonghi/worm-simulator.git
+git clone https://github.com/BABots-Project/worm-simulator.git
 ```
 3 - Run the simulation in a browser
 ```
