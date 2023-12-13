@@ -2,7 +2,6 @@ import mesa
 from player import SolitaryWorm, SocialWorm, Food, SPSocialWorm, SPSolitaryWorm
 from environment import WormEnvironment
 import math
-import random
 from typing import Tuple
 
 class WormSimulator(mesa.Model):
@@ -52,8 +51,10 @@ class WormSimulator(mesa.Model):
                 if d > (self.grid.dim_grid / math.sqrt(2)):
                     d = self.random.uniform(1, self.grid.dim_grid / math.sqrt(2))
                 starting_pos = self.random.choice(foods).pos
-                possible_positions = self.grid.get_neighborhood_dist(starting_pos, False, int(d))
-                coords = self.random.choice(possible_positions)
+                angle = self.random.uniform(0, 2 * math.pi)
+                x = (starting_pos[0] + int(d * math.cos(angle))) % self.grid.dim_grid
+                y = (starting_pos[1] + int(d * math.sin(angle))) % self.grid.dim_grid
+                coords = (x, y)
                 f = Food(f'food_{i}', self, coords)
                 self.grid.place_food(coords, f)
                 foods.append(f)
