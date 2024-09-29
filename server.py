@@ -7,8 +7,8 @@ import math
 WORM_COLOR = "#FF0000"
 FOOD_PALETTE = list(Color('blue').range_to(Color('yellow'), 50))
 
-GRID_SIZE = 35
-N_FOOD = GRID_SIZE**2 * 10
+ENV_SIZE = 35
+N_FOOD = ENV_SIZE**2 * 10
 
 def agent_portrayal(agent: mesa.Agent) -> Dict:
 
@@ -74,7 +74,7 @@ model_params = {
         3,
         step=0.5
     ),
-    "dim_grid": GRID_SIZE,
+    "dim_env": ENV_SIZE,
     "multispot": mesa.visualization.Checkbox(
         "Multispot Food Distribution",
         False,
@@ -86,7 +86,7 @@ model_params = {
     ),
 }
 
-canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, GRID_SIZE, GRID_SIZE, 600, 600)
+# canvas_element = mesa.visualization.CanvasGrid(agent_portrayal, ENV_SIZE, ENV_SIZE, 600, 600)
 
 chart = mesa.visualization.ChartModule(
     [
@@ -98,7 +98,8 @@ chart = mesa.visualization.ChartModule(
 # create instance of Mesa ModularServer
 server = mesa.visualization.ModularServer(
     WormSimulator,
-    [canvas_element, chart],
+    #[canvas_element, chart],
+    [chart],
     "Worm Model",
     model_params=model_params,
 )

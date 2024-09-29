@@ -1,59 +1,25 @@
 import mesa
 from mesa.space import Coordinate
 from mesa.agent import Agent
-from player import Food, SocialWorm, SolitaryWorm
+from player import SocialWorm, SolitaryWorm
 from typing import Sequence
 import math
 from random import Random
 
 
-class WormEnvironment(mesa.space.MultiGrid):
+class WormEnvironment(mesa.space.ContinuousSpace):
 
-    def __init__(self, dim_grid: int, torus: bool) -> None:
-        super().__init__(dim_grid, dim_grid, torus)
-        self.dim_grid = dim_grid
+    def __init__(self, dim_env: float, torus: bool) -> None:
+        super().__init__(dim_env, dim_env, torus)
+        self.dim_env = dim_env
         # Additional attributes to track foraging efficiency metrics
         self.foraging_attempts = 0
         self.successful_foraging_attempts = 0
-
-    def is_cell_free(self, pos: Coordinate) -> bool:
-        x, y = pos
-        num_worms = sum([type(agent) != Food for agent in self._grid[x][y]])
-        return num_worms == 0
-
-    def has_food(self, pos: Coordinate) -> bool:
-        x, y = pos
-        num_food = sum([type(agent) == Food for agent in self._grid[x][y]])
-        return num_food > 0
 
     def get_neighbor_worms(self, pos: Coordinate, moore: bool, radius: int = 1) -> list[Agent]:
         agents = list(self.iter_neighbors(pos, moore, False, radius))
         worms = [a for a in agents if a.is_worm()]
         return worms
-
-    def place_food(self, pos: Coordinate, f: Food) -> None:
-        x, y = pos
-        food = [agent for agent in self._grid[x][y] if type(agent) == Food]
-        if len(food) > 0:
-            food[0].increase()
-        else:
-            self._grid[x][y].append(f)
-            if self._empties_built:
-                self._empties.discard(pos)
-
-    def consume_food(self, pos: Coordinate, agent:SolitaryWorm, qty: float = 1) -> None:
-        x, y = pos
-        food = [agent for agent in self._grid[x][y] if type(agent) == Food]
-        if len(food) > 0:
-            food[0].consume(qty)
-            agent.consumed_food += agent.feeding_rate
-
-    def food_quantity(self, pos: Coordinate) -> int:
-        x, y = pos
-        return sum([agent.quantity for agent in self._grid[x][y] if type(agent) == Food])
-
-    def get_total_food(self) -> int:
-        return sum([self.food_quantity(pos) for _, pos in self.coord_iter()])
 
     def get_neighborhood_dist(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
         """
@@ -77,8 +43,8 @@ class WormEnvironment(mesa.space.MultiGrid):
             dx = abs(cell[0] - x)
             dy = abs(cell[1] - y)
             if self.torus:
-                dx = min(dx, self.dim_grid - dx)
-                dy = min(dy, self.dim_grid - dy)
+                dx = min(dx, self.dim_env - dx)
+                dy = min(dy, self.dim_env - dy)
             if moore:
                 if dx == radius or dy == radius:
                     cells.append(cell)
