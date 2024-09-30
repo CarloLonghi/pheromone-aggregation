@@ -16,11 +16,12 @@ class WormSimulator(mesa.Model):
         else:
             for i in range(n_agents):
                 pos = (self.random.uniform(0, dim_env), self.random.uniform(0, dim_env))
-                a = WormSimulator.create_agent(self, social, strain_specific, i, pos)
+                vel = (self.random.gauss(mu = 0., sigma = 1.), self.random.gauss(mu = 0., sigma = 1.))
+                a = WormSimulator.create_agent(self, social, strain_specific, i, pos, vel)
                 self.schedule.add(a)
                 self.env.place_agent(a, (a.posx, a.posy))
 
-        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy'})
+        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy', 'velx': 'velx', 'vely': 'vely'})
         self.datacollector.collect(self)
 
     def step(self) -> None:
@@ -46,7 +47,7 @@ class WormSimulator(mesa.Model):
             self.env.place_agent(a, a.pos)
 
     @staticmethod
-    def create_agent(model: mesa.Model, social: bool, strain_specific: bool, n: int, pos: Tuple[int]) -> mesa.Agent:
+    def create_agent(model: mesa.Model, social: bool, strain_specific: bool, n: int, pos: Tuple[float], vel: Tuple[float]) -> mesa.Agent:
         agent = None
         if strain_specific:
             if social:
@@ -57,5 +58,5 @@ class WormSimulator(mesa.Model):
             if social:
                 agent = SocialWorm(n, model, pos)
             else:
-                agent = SolitaryWorm(n, model, pos)
+                agent = SolitaryWorm(n, model, pos, vel)
         return agent
