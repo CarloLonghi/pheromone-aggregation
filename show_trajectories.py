@@ -20,7 +20,6 @@ class Simulator():
         self.width = width
         self.height = height
         self.pos_data = pos_data
-        self.num_agents = pos_data['AgentID'].max() + 1
 
     def run(self) -> None:
         pygame.init()
@@ -34,7 +33,7 @@ class Simulator():
         step = 0
         while running and step < MAX_STEPS:
 
-            pygame.time.delay(100)
+            pygame.time.delay(20)
 
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -45,10 +44,20 @@ class Simulator():
 
             canvas.fill((0, 0, 0))
 
-            agent_positions = self.pos_data.loc[(self.pos_data['Step'] == step)][['posx', 'posy']].to_numpy()
-            agent_velocities = self.pos_data.loc[(self.pos_data['Step'] == step)][['velx', 'vely']].to_numpy()
+            ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False)][['posx', 'posy']].to_numpy()
+            ph_velocities = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False)][['velx', 'vely']].to_numpy()
 
-            for i in range(self.num_agents):
+            for i in range(ph_positions.shape[0]):
+                color = 'blue'
+                pos = ph_positions[i]
+                vel = ph_velocities[i]
+
+                pygame.draw.circle(canvas, color, pos, (5))
+
+            agent_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['posx', 'posy']].to_numpy()
+            agent_velocities = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['velx', 'vely']].to_numpy()
+
+            for i in range(agent_positions.shape[0]):
                 color = 'red'
                 distances = np.sqrt((agent_positions[i, 0] - agent_positions[:, 0]) ** 2 + (agent_positions[i, 1] - agent_positions[:, 1]) ** 2)
                 neighbors = distances <= 10
@@ -58,7 +67,7 @@ class Simulator():
                 vel = agent_velocities[i]
 
                 pygame.draw.circle(canvas, color, pos, (5))
-                arrow(canvas, "white", (255, 255, 255), pos, pos + vel * 10, 4, 2)
+                #arrow(canvas, "white", (255, 255, 255), pos, pos + vel * 10, 4, 2)
             
             pygame.display.update()
             step += 1

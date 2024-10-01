@@ -1,10 +1,7 @@
 import mesa
 from mesa.space import Coordinate
 from mesa.agent import Agent
-from player import SocialWorm, SolitaryWorm
-from typing import Sequence
-import math
-from random import Random
+from typing import Sequence, Tuple
 
 
 class WormEnvironment(mesa.space.ContinuousSpace):
@@ -18,13 +15,13 @@ class WormEnvironment(mesa.space.ContinuousSpace):
 
     def get_neighbor_worms(self, pos: Coordinate, radius: int = 1, include_center: bool = False) -> list[Agent]:
         agents = list(self.get_neighbors(pos, radius, include_center))
-        worms = [a for a in agents if a.is_worm()]
+        worms = [a for a in agents if a.is_worm]
         return worms
     
     def get_pheromone(self, pos: Coordinate, radius: int = 1, include_center: bool = True) -> list[Agent]:
         agents = list(self.get_neighbors(pos, radius, include_center))
-        pheromones = [a for a in agents if not a.is_worm()]
-        return pheromones    
+        pheromones = [a for a in agents if not a.is_worm]
+        return pheromones 
 
     def get_neighborhood_dist(self, pos: Coordinate, moore: bool = False, radius: int = 1) -> Sequence[Coordinate]:
         """

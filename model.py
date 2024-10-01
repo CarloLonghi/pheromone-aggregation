@@ -17,11 +17,11 @@ class WormSimulator(mesa.Model):
             for i in range(n_agents):
                 pos = (self.random.uniform(0, dim_env), self.random.uniform(0, dim_env))
                 vel = (self.random.gauss(mu = 0., sigma = 1.), self.random.gauss(mu = 0., sigma = 1.))
-                a = WormSimulator.create_agent(self, social, strain_specific, i, pos, vel)
+                a = WormSimulator.create_agent(self, social, strain_specific, self.next_id(), pos, vel)
                 self.schedule.add(a)
                 self.env.place_agent(a, (a.posx, a.posy))
 
-        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy', 'velx': 'velx', 'vely': 'vely'})
+        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy', 'velx': 'velx', 'vely': 'vely', 'worm': 'is_worm'})
         self.datacollector.collect(self)
 
     def step(self) -> None:

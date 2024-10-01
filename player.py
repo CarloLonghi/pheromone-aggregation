@@ -7,18 +7,19 @@ import numpy as np
 
 class SolitaryWorm(mesa.Agent):
     """Class for the solitary worm in the minimal model"""
-    def __init__(self, name: str, model: mesa.Model, pos: Tuple[float], vel: Tuple[float],
-                  align_dist: float = 10, align_w: float = 0.3, sensing_range: float = 10, attractive_w = 0.5):
+    def __init__(self, name: str, model: mesa.Model, pos: Tuple[float], vel: Tuple[float], speed: float = 5,
+                  align_dist: float = 10, align_w: float = 0.2, sensing_range: float = 100, attractive_w = 0.2):
         super().__init__(name, model)
         self.name = name
         self.posx, self.posy = pos
         self.velx, self.vely = vel
+        self.speed = speed
         self.align_dist = align_dist
         self.align_w = align_w
         self.sensing_range = sensing_range
         self.sensing_pheromone = False
         self.attractive_w = attractive_w
-
+        self.is_worm = True
 
     def sense_pheromone(self) -> bool:
         self.sensing_pheromone = False
@@ -27,7 +28,7 @@ class SolitaryWorm(mesa.Agent):
             self.sensing_pheromone = True
             pos = np.array([(ph.posx, ph.posy) for ph in pheromone])
             strength = np.array([ph.quantity for ph in pheromone])
-            self.pheromone_pos = np.average(pos, axis=1, weights=strength)
+            self.pheromone_pos = np.average(pos, axis=0, weights=strength)
             
 
     def move(self) -> None:
@@ -45,10 +46,11 @@ class SolitaryWorm(mesa.Agent):
 
         if self.sensing_pheromone:
             attractive_step = (self.pheromone_pos[0] - self.posx, self.pheromone_pos[1] - self.posy)
-            self.velx += self.attractive_w * attractive_step
+            self.velx += self.attractive_w * attractive_step[0]
+            self.vely += self.attractive_w * attractive_step[1]
 
         # normalize the velocity
-        speed = math.sqrt(self.velx ** 2 + self.vely ** 2)
+        speed = math.sqrt(self.velx ** 2 + self.vely ** 2) / self.speed
         self.velx = self.velx / speed
         self.vely = self.vely / speed
 
@@ -57,14 +59,15 @@ class SolitaryWorm(mesa.Agent):
         self.posx, self.posy = self.model.env.torus_adj(newpos)
 
     def emit_pheromone(self) -> bool:
-        ph = Pheromone('attractive_pheromone', self.model, (self.posx, self.posy))
+        ph = Pheromone(self.model.next_id(), self.model, (self.posx, self.posy), attractive=True)
         self.model.schedule.add(ph)
+        self.model.env.place_agent(ph, (self.posx, self.posy))
 
     def is_worm(self) -> bool:
         return True
 
     def step(self) -> None:
-        # self.emit_pheromone()
+        self.emit_pheromone()
         self.sense_pheromone()
         self.move()
 
@@ -216,19 +219,23 @@ class Food(mesa.Agent):
         return False
     
 class Pheromone(mesa.Agent):
-    def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], quantity: float = 1, volatility_rate: float = 0.01):
+    def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], attractive: bool, quantity: float = 1, speed: float = 1, volatility_rate: float = 0.01):
         super().__init__(name, model)
         self.name = name
         self.posx, self.posy = pos
+        self.attractive = attractive
         self.quantity = quantity
         self.velx = 0
         self.vely = 0
+        self.speed = speed
         self.volatility_rate = volatility_rate
+        self.is_worm = False
 
     def disperse(self, qty: float) -> None:
         self.quantity -= qty
         if self.quantity <= 0:
             self.model.env.remove_agent(self)
+            self.model.schedule.remove(self)
 
     def move(self) -> None:
         angle = self.random.random() * math.pi * 2
@@ -236,7 +243,7 @@ class Pheromone(mesa.Agent):
         self.vely = math.sin(angle)
 
         # normalize the velocity
-        speed = math.sqrt(self.velx ** 2 + self.vely ** 2) * 5
+        speed = math.sqrt(self.velx ** 2 + self.vely ** 2) * self.speed
         self.velx = self.velx / speed
         self.vely = self.vely / speed
 
