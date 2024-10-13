@@ -21,7 +21,8 @@ class WormSimulator(mesa.Model):
                 self.schedule.add(a)
                 self.env.place_agent(a, (a.posx, a.posy))
 
-        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy', 'velx': 'velx', 'vely': 'vely', 'worm': 'is_worm'})
+        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy', 'velx': 'velx', 'vely': 'vely', 
+                                                                 'worm': 'is_worm'})
         self.datacollector.collect(self)
 
     def step(self) -> None:

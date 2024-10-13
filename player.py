@@ -17,18 +17,28 @@ class SolitaryWorm(mesa.Agent):
         self.align_dist = align_dist
         self.align_w = align_w
         self.sensing_range = sensing_range
-        self.sensing_pheromone = False
+        self.attraction_pheromone = False
         self.attractive_w = attractive_w
         self.is_worm = True
 
     def sense_pheromone(self) -> bool:
-        self.sensing_pheromone = False
+        self.attraction_pheromone = False
+        self.repulsion_pheromone = False
         pheromone = self.model.env.get_pheromone(self.pos, self.sensing_range, True)
-        if len(pheromone) > 0:
-            self.sensing_pheromone = True
-            pos = np.array([(ph.posx, ph.posy) for ph in pheromone])
-            strength = np.array([ph.quantity for ph in pheromone])
-            self.pheromone_pos = np.average(pos, axis=0, weights=strength)
+
+        att_pheromone = [ph for ph in pheromone if ph.attractive]
+        rep_pheromone = [ph for ph in pheromone if not ph.attractive]
+        if len(att_pheromone) > 0:
+            self.attraction_pheromone = True
+            pos = np.array([(ph.posx, ph.posy) for ph in att_pheromone])
+            strength = np.array([ph.quantity for ph in att_pheromone])
+            self.attraction_pos = np.average(pos, axis=0, weights=strength)
+
+        if len(rep_pheromone):
+            self.repulsion_pheromone = True
+            pos = np.array([(ph.posx, ph.posy) for ph in rep_pheromone])
+            strength = np.array([ph.quantity for ph in rep_pheromone])
+            self.repulsion_pos = np.average(pos, axis=0, weights=strength)
             
 
     def move(self) -> None:
@@ -44,10 +54,15 @@ class SolitaryWorm(mesa.Agent):
             self.velx = self.align_w * align_vel[0] + (1 - self.align_w - self.attractive_w) * self.velx
             self.vely = self.align_w * align_vel[1] + (1 - self.align_w - self.attractive_w) * self.vely
 
-        if self.sensing_pheromone:
-            attractive_step = (self.pheromone_pos[0] - self.posx, self.pheromone_pos[1] - self.posy)
+        if self.attraction_pheromone:
+            attractive_step = (self.attraction_pos[0] - self.posx, self.attraction_pos[1] - self.posy)
             self.velx += self.attractive_w * attractive_step[0]
             self.vely += self.attractive_w * attractive_step[1]
+
+        if self.repulsion_pheromone:
+            repulsive_step = (self.posx - self.repulsion_pos[0], self.posy - self.repulsion_pos[1])
+            self.velx += self.attractive_w * repulsive_step[0]
+            self.vely += self.attractive_w * repulsive_step[1]
 
         # normalize the velocity
         speed = math.sqrt(self.velx ** 2 + self.vely ** 2) / self.speed
@@ -59,9 +74,13 @@ class SolitaryWorm(mesa.Agent):
         self.posx, self.posy = self.model.env.torus_adj(newpos)
 
     def emit_pheromone(self) -> bool:
-        ph = Pheromone(self.model.next_id(), self.model, (self.posx, self.posy), attractive=True)
-        self.model.schedule.add(ph)
-        self.model.env.place_agent(ph, (self.posx, self.posy))
+        ph_att = Pheromone(self.model.next_id(), self.model, (self.posx, self.posy), attractive=True)
+        self.model.schedule.add(ph_att)
+        self.model.env.place_agent(ph_att, (self.posx, self.posy))
+
+        ph_rep = Pheromone(self.model.next_id(), self.model, (self.posx, self.posy), attractive=False)
+        self.model.schedule.add(ph_rep)
+        self.model.env.place_agent(ph_rep, (self.posx, self.posy))
 
     def is_worm(self) -> bool:
         return True

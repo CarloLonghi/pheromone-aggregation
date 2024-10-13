@@ -45,12 +45,10 @@ class Simulator():
             canvas.fill((0, 0, 0))
 
             ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False)][['posx', 'posy']].to_numpy()
-            ph_velocities = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False)][['velx', 'vely']].to_numpy()
 
             for i in range(ph_positions.shape[0]):
                 color = 'blue'
                 pos = ph_positions[i]
-                vel = ph_velocities[i]
 
                 pygame.draw.circle(canvas, color, pos, (5))
 
