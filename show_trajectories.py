@@ -14,12 +14,13 @@ class Simulator():
     def __init__(
             self,
             pos_data: pd.DataFrame,
-            width: int = ENV_SIZE,
-            height: int = ENV_SIZE,
+            width: int = ENV_SIZE * 2,
+            height: int = ENV_SIZE * 2,
     ) -> None:
         self.width = width
         self.height = height
         self.pos_data = pos_data
+        self.size_multiplier = 2
 
     def run(self) -> None:
         pygame.init()
@@ -44,16 +45,26 @@ class Simulator():
 
             canvas.fill((0, 0, 0))
 
-            ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False)][['posx', 'posy']].to_numpy()
+            att_ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False) & 
+                                                 (self.pos_data['attractive'] == True)][['posx', 'posy']].to_numpy() * self.size_multiplier
 
-            for i in range(ph_positions.shape[0]):
-                color = 'blue'
-                pos = ph_positions[i]
+            color = 'blue'
+            for i in range(att_ph_positions.shape[0]):
+                pos = att_ph_positions[i]
 
-                pygame.draw.circle(canvas, color, pos, (5))
+                pygame.draw.circle(canvas, color, pos, (1 * self.size_multiplier))
 
-            agent_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['posx', 'posy']].to_numpy()
-            agent_velocities = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['velx', 'vely']].to_numpy()
+            rep_ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False) & 
+                                                 (self.pos_data['attractive'] == False)][['posx', 'posy']].to_numpy() * self.size_multiplier
+
+            color = 'purple'
+            for i in range(rep_ph_positions.shape[0]):
+                pos = rep_ph_positions[i]
+
+                pygame.draw.circle(canvas, color, pos, (1 * self.size_multiplier))
+
+            agent_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['posx', 'posy']].to_numpy() * self.size_multiplier
+            agent_velocities = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['velx', 'vely']].to_numpy() * self.size_multiplier
 
             for i in range(agent_positions.shape[0]):
                 color = 'red'
@@ -64,7 +75,7 @@ class Simulator():
                 pos = agent_positions[i]
                 vel = agent_velocities[i]
 
-                pygame.draw.circle(canvas, color, pos, (5))
+                pygame.draw.circle(canvas, color, pos, (5 * self.size_multiplier))
                 #arrow(canvas, "white", (255, 255, 255), pos, pos + vel * 10, 4, 2)
             
             pygame.display.update()
