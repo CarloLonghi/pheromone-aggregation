@@ -50,7 +50,7 @@ class SolitaryWorm(mesa.Agent):
 
         worm_neighbors = self.model.env.get_neighbor_worms(self.pos, self.align_dist, False)
         n_neighbors = len(worm_neighbors)
-        align_vel = (0, 0); align_angle = 0; attractive_step = (0, 0); attr_angle = 0; repulsive_step = (0, 0); rep_angle = 0
+        align_angle = 0; attr_angle = 0; rep_angle = 0
         total_w = 0
         if n_neighbors > 0: # alignment
             neighbors_dirs = [a.angle for a in worm_neighbors]

@@ -34,7 +34,7 @@ class Simulator():
         step = 0
         while running and step < MAX_STEPS:
 
-            pygame.time.delay(20)
+            pygame.time.delay(0)
 
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -79,6 +79,8 @@ class Simulator():
                 #arrow(canvas, "white", (255, 255, 255), pos, pos + vel * 10, 4, 2)
             
             pygame.display.update()
+            filename = "video/screen_%04d.png" % ( step )
+            pygame.image.save(canvas, filename)
             step += 1
 
 
