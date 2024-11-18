@@ -1,2 +1,6 @@
 __pycache__
 .vscode
+aggr_data
+position_data.csv
+exp.sh
+video*

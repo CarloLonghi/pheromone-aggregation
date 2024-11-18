@@ -9,8 +9,8 @@ import argparse
 import os
 
 NUM_EXPERIMENTS = 1
-ENV_SIZE = 300
-MAX_STEPS = 1000
+ENV_SIZE = 400
+MAX_STEPS = 500
 NUM_AGENTS = 75
 
 if len(sys.argv) > 1:
@@ -36,6 +36,9 @@ def run_experiment(attractive_w, repulsive_w, align_w):
 
 def main(attractive_w, repulsive_w, align_w, test_n):
     res, adj_mat = run_experiment(attractive_w, repulsive_w, align_w)
+    res['posx'] = [p[0] for p in res['pos'].values]
+    res['posy'] = [p[1] for p in res['pos'].values]
+    res = res.drop('pos', axis=1)
     res.to_csv(f'position_data.csv')
     np.save(f'aggr_data/adj_{attractive_w}_{repulsive_w}_{align_w}_{test_n}.npy', adj_mat)
 

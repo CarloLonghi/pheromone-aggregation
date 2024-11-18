@@ -22,11 +22,11 @@ class WormSimulator(mesa.Model):
                 angle = self.random.random() * math.pi * 2
                 a = WormSimulator.create_agent(self, self.next_id(), pos, angle, attractive_w, repulsive_w, align_w)
                 self.schedule.add(a)
-                self.env.place_agent(a, (a.posx, a.posy))
+                self.env.place_agent(a, a.pos)
 
         self.adj_matrix[self.schedule.steps] = self.get_adj_matrix()
 
-        self.datacollector = mesa.DataCollector(agent_reporters={'posx': 'posx', 'posy': 'posy', 'velx': 'velx', 'vely': 'vely', 
+        self.datacollector = mesa.DataCollector(agent_reporters={'pos': 'pos', 'velx': 'velx', 'vely': 'vely', 
                                                                  'worm': 'is_worm', 'attractive': 'attractive'})
         self.datacollector.collect(self)
 
@@ -36,7 +36,7 @@ class WormSimulator(mesa.Model):
         self.datacollector.collect(self)
 
     def get_adj_matrix(self) -> np.ndarray:
-        worm_pos = np.array([(a.posx, a.posy) for a in self.schedule.agents if a.is_worm])
+        worm_pos = np.array([a.pos for a in self.schedule.agents if a.is_worm])
         dist_mat = np.zeros(self.adj_matrix.shape[1:])
         for w in range(len(worm_pos)):
             dist_mat[w] = np.sqrt((worm_pos[w, 0] - worm_pos[:, 0]) ** 2 + (worm_pos[w, 1] - worm_pos[:, 1]) ** 2)
@@ -67,5 +67,5 @@ class WormSimulator(mesa.Model):
     def create_agent(model: mesa.Model, n: int, pos: Tuple[float], vel: Tuple[float],
                     attractive_w = 0.4, repulsive_w = 0.4, align_w = 0.2) -> mesa.Agent:
         agent = SolitaryWorm(n, model, pos, vel, attractive_w=attractive_w, repulsive_w=repulsive_w, 
-                             align_w=align_w, sensing_range=5)
+                             align_w=align_w, sensing_range=20, align_dist=10)
         return agent

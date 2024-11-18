@@ -14,13 +14,13 @@ class Simulator():
     def __init__(
             self,
             pos_data: pd.DataFrame,
-            width: int = ENV_SIZE * 2,
-            height: int = ENV_SIZE * 2,
+            width: int = ENV_SIZE,
+            height: int = ENV_SIZE,
     ) -> None:
-        self.width = width
-        self.height = height
         self.pos_data = pos_data
         self.size_multiplier = 2
+        self.width = width * self.size_multiplier
+        self.height = height * self.size_multiplier
 
     def run(self) -> None:
         pygame.init()
