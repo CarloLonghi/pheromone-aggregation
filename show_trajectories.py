@@ -21,6 +21,7 @@ class Simulator():
         self.size_multiplier = 2
         self.width = width * self.size_multiplier
         self.height = height * self.size_multiplier
+        self.alignment_dist = 10 * self.size_multiplier
 
     def run(self) -> None:
         pygame.init()
@@ -47,21 +48,27 @@ class Simulator():
 
             att_ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False) & 
                                                  (self.pos_data['attractive'] == True)][['posx', 'posy']].to_numpy() * self.size_multiplier
+            att_ph_range = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False) & 
+                                                 (self.pos_data['attractive'] == True)][['range']].to_numpy() * self.size_multiplier            
 
             color = 'blue'
             for i in range(att_ph_positions.shape[0]):
                 pos = att_ph_positions[i]
+                rng = att_ph_range[i][0]
 
-                pygame.draw.circle(canvas, color, pos, (1 * self.size_multiplier))
+                pygame.draw.circle(canvas, color, pos, (rng))
 
             rep_ph_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False) & 
                                                  (self.pos_data['attractive'] == False)][['posx', 'posy']].to_numpy() * self.size_multiplier
+            rep_ph_range = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == False) & 
+                                                 (self.pos_data['attractive'] == False)][['range']].to_numpy() * self.size_multiplier                                                     
 
             color = 'purple'
             for i in range(rep_ph_positions.shape[0]):
                 pos = rep_ph_positions[i]
+                rng = rep_ph_range[i][0]
 
-                pygame.draw.circle(canvas, color, pos, (1 * self.size_multiplier))
+                pygame.draw.circle(canvas, color, pos, (rng))
 
             agent_positions = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['posx', 'posy']].to_numpy() * self.size_multiplier
             agent_velocities = self.pos_data.loc[(self.pos_data['Step'] == step) & (self.pos_data['worm'] == True)][['velx', 'vely']].to_numpy() * self.size_multiplier
@@ -69,7 +76,7 @@ class Simulator():
             for i in range(agent_positions.shape[0]):
                 color = 'red'
                 distances = np.sqrt((agent_positions[i, 0] - agent_positions[:, 0]) ** 2 + (agent_positions[i, 1] - agent_positions[:, 1]) ** 2)
-                neighbors = distances <= 10
+                neighbors = distances <= self.alignment_dist
                 if sum(neighbors) > 1:
                     color = 'green'
                 pos = agent_positions[i]

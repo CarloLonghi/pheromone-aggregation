@@ -27,7 +27,7 @@ class WormSimulator(mesa.Model):
         self.adj_matrix[self.schedule.steps] = self.get_adj_matrix()
 
         self.datacollector = mesa.DataCollector(agent_reporters={'pos': 'pos', 'velx': 'velx', 'vely': 'vely', 
-                                                                 'worm': 'is_worm', 'attractive': 'attractive'})
+                                                                 'worm': 'is_worm', 'attractive': 'attractive', 'range': 'range'})
         self.datacollector.collect(self)
 
     def step(self) -> None:
