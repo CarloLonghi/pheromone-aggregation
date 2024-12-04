@@ -51,11 +51,12 @@ class SolitaryWorm(mesa.Agent):
             
 
     def move(self) -> None:
-        self.angle = self.random.random() * math.pi * 2
+        self.angle = self.random.random() * math.pi * 2 - math.pi
 
         worm_neighbors = self.model.env.get_neighbor_worms(self.pos, self.align_dist, False)
         n_neighbors = len(worm_neighbors)
-        align_angle = 0; attr_angle = 0; rep_angle = 0
+        align_angle = 0
+        attractive_step = (0,0); repulsive_step = (0,0)
         total_w = 0
         if n_neighbors > 0: # alignment
             neighbors_dirs = [a.angle for a in worm_neighbors]
@@ -64,12 +65,10 @@ class SolitaryWorm(mesa.Agent):
 
         if self.attraction_pheromone: # attraction
             attractive_step = (self.attraction_pos[0] - self.pos[0], self.attraction_pos[1] - self.pos[1])
-            attr_angle = np.arctan2(attractive_step[1], attractive_step[0])
             total_w += self.attractive_w
 
         if self.repulsion_pheromone: # repulsion
             repulsive_step = (self.pos[0] - self.repulsion_pos[0], self.pos[1] - self.repulsion_pos[1])
-            rep_angle = np.arctan2(repulsive_step[1], repulsive_step[0])
             total_w += self.repulsive_w
 
         total_w += 1 - self.align_w - self.attractive_w - self.repulsive_w
@@ -81,7 +80,9 @@ class SolitaryWorm(mesa.Agent):
         if self.repulsion_pheromone:
             rew = self.repulsive_w / total_w
         rww = (1 - self.align_w - self.attractive_w - self.repulsive_w) / total_w
-        self.angle = alw * align_angle + atw * attr_angle + rew * rep_angle + rww * self.angle
+        x = np.cos(align_angle)*alw + attractive_step[0]*atw + repulsive_step[0]*rew + np.cos(self.angle)*rww
+        y = np.sin(align_angle)*alw + attractive_step[1]*atw + repulsive_step[1]*rew + np.sin(self.angle)*rww
+        self.angle = np.arctan2(y,x)
 
         velx = np.cos(self.angle) * self.speed
         vely = np.sin(self.angle) * self.speed
@@ -91,13 +92,15 @@ class SolitaryWorm(mesa.Agent):
         self.pos = self.model.env.torus_adj(newpos)
 
     def emit_pheromone(self) -> bool:
-        if np.random.uniform() > self.pheromone_prob:
-            ph_att = Pheromone(self.model.next_id(), self.model, self.pos, attractive=True, quantity=1, diffusion=2, threshold=0.05)
+        if np.random.uniform() < self.pheromone_prob:
+            ph_att = Pheromone(self.model.next_id(), self.model, self.pos, attractive=True, quantity=1, diffusion=5, threshold=0.001,
+                               decay_rate=0.005)
             self.model.schedule.add(ph_att)
             self.model.env.place_agent(ph_att, ph_att.pos)
 
-        if np.random.uniform() > self.pheromone_prob:
-            ph_rep = Pheromone(self.model.next_id(), self.model, self.pos, attractive=False, quantity=1, diffusion=1, threshold=0.05)
+        if np.random.uniform()< self.pheromone_prob:
+            ph_rep = Pheromone(self.model.next_id(), self.model, self.pos, attractive=False, quantity=1, diffusion=1, threshold=0.001,
+                               decay_rate=0.005)
             self.model.schedule.add(ph_rep)
             self.model.env.place_agent(ph_rep, ph_rep.pos)
 
@@ -111,7 +114,7 @@ class SolitaryWorm(mesa.Agent):
 
 class Pheromone(mesa.Agent):
     def __init__(self, name: str, model: mesa.Model, pos: Tuple[int], attractive: bool, quantity: float = 1,
-                  diffusion: float = 1.0, threshold: float = 0.1, decay_rate: float = 0.1):
+                  diffusion: float = 1.0, threshold: float = 0.1, decay_rate: float = 0.01):
         super().__init__(name, model)
         self.name = name
         self.pos = pos
