@@ -64,8 +64,8 @@ class WormSimulator(mesa.Model):
             self.env.place_agent(a, a.pos)
 
     @staticmethod
-    def create_agent(model: mesa.Model, n: int, pos: Tuple[float], vel: Tuple[float],
+    def create_agent(model: mesa.Model, n: int, pos: Tuple[float], angle: Tuple[float],
                     attractive_w = 0.4, repulsive_w = 0.4, align_w = 0.2) -> mesa.Agent:
-        agent = SolitaryWorm(n, model, pos, vel, attractive_w=attractive_w, repulsive_w=repulsive_w, 
+        agent = SolitaryWorm(n, model, pos, angle, attractive_w=attractive_w, repulsive_w=repulsive_w, 
                              align_w=align_w, sensing_range=20, align_dist=10, pheromone_prob=0.5)
         return agent
